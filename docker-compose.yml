@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: fortress-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: fortressuser
+      POSTGRES_PASSWORD: fortresspass
+      POSTGRES_DB: fortressdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - fortress_data:/var/lib/postgresql/data
+
+volumes:
+  fortress_data:
