@@ -16,9 +16,11 @@ datasource db {
 
 model User {
   id          String   @id @default(uuid())
+  name        String
   email       String   @unique
   masterHash  String
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
   credentials Credential[]
 }
 
@@ -28,6 +30,7 @@ model Credential {
   encryptedData Bytes
   iv            Bytes
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
   userId        String
   user          User     @relation(fields: [userId], references: [id])
 }
