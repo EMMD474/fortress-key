@@ -96,7 +96,7 @@ const RegisterPage = () => {
   }
 
   return (
-    <div>
+    <div className='w-full pt-15'>
       <FormContainer>
         <div className="max-w-md w-full space-y-8 bg-transparent ">
           <div>

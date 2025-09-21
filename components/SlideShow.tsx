@@ -26,7 +26,7 @@ const SlideShow = () => {
   };
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto mt-6 sm:mt-10">
+    <div className="relative w-full max-w-5xl mx-auto mt-6 sm:mt-10">
       <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] overflow-hidden rounded-lg sm:rounded-2xl shadow-lg">
         <AnimatePresence mode="wait">
           <motion.div

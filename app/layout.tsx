@@ -28,7 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-gray-900 tracking-tight`}
       >
-        <div className="h-screen w-full bg-white text-black">
+        <div className="min-h-screen w-full bg-gray-100 text-black">
            <Providers>
             <NavBar />
             {children}
