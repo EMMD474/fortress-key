@@ -14,13 +14,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   name        String
-  email       String   @unique
+  email       String      @unique
   masterHash  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
   credentials Credential[]
 }
 
