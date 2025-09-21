@@ -7,6 +7,7 @@ import FormContainer from '@/components/auth/FormContainer'
 import { toast } from 'sonner'
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation"
+import Footer from '@/components/ui/Footer'
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -93,7 +94,7 @@ const LoginPage = () => {
             
           </div>
           
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-6 " onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -191,6 +192,7 @@ const LoginPage = () => {
           </form>
         </div>
       </FormContainer>
+      <Footer />
 
     </div>
   )
