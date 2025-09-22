@@ -3,7 +3,7 @@ import { Key, Shield, Zap, RefreshCw, Monitor } from "lucide-react";
 
 const FormContainer = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8 ">
+    <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8 ">
       <div className="flex flex-col md:flex-row w-full max-w-5xl  bg-white shadow-md hover:shadow-lg transition-shadow duration 200 rounded-xl overflow-hidden ">
         {/* Left Panel */}
         <div className="w-full md:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white flex flex-col justify-center p-10 relative">
@@ -37,7 +37,7 @@ const FormContainer = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         {/* Right Panel (Dynamic Form goes here) */}
-        <div className="w-full md:w-1/2 p-8 flex items-center justify-center dark:bg-gray-800">
+        <div className="w-full md:w-1/2 p-8 flex items-center justify-center dark:bg-blue-950">
           <div className="w-full max-w-md">{children}</div>
         </div>
       </div>

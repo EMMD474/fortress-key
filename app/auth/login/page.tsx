@@ -84,20 +84,20 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="w-full pt-15">
+    <div className="w-full min-h-screen flex flex-col items-center justify-center pt-15">
       <FormContainer>
         <div className="max-w-md w-full space-y-8 bg-transparent">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-blue-800">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-blue-800 dark:text-blue-300">
               Sign in to your account
             </h2>
             
           </div>
           
-          <form className="mt-8 space-y-6 " onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit} >
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Email address
                 </label>
                 <input
@@ -109,17 +109,17 @@ const LoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors`}
+                    errors.email ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
+                  } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors hover:border-indigo-400 dark:hover:border-indigo-500`}
                   placeholder="Enter your email"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Password
                 </label>
                 <input
@@ -131,12 +131,12 @@ const LoginPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.password ? 'border-red-300' : 'border-gray-300'
-                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors`}
+                    errors.password ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
+                  } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors hover:border-indigo-400 dark:hover:border-indigo-500`}
                   placeholder="Enter your password"
                 />
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
                 )}
               </div>
             </div>
@@ -147,9 +147,9 @@ const LoginPage = () => {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-indigo-400 dark:focus:ring-indigo-400 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-200">
                   Remember me
                 </label>
               </div>
@@ -157,7 +157,7 @@ const LoginPage = () => {
               <div className="text-sm">
                 <Link
                   href="/auth/forgot-password"
-                  className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                  className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors"
                 >
                   Forgot your password?
                 </Link>
@@ -168,10 +168,10 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group cursor-pointer relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="group cursor-pointer relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Spinner />
                     Signing in...
                   </div>
@@ -179,11 +179,11 @@ const LoginPage = () => {
                   'Sign in'
                 )}
               </button>
-              <div className="mt-2 text-center text-sm text-gray-600">
+              <div className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
                 <Link
                   href="/auth/register"
-                  className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                  className="font-medium text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:text-indigo-500 transition-colors"
                 >
                   Sign up
                 </Link>
@@ -192,7 +192,7 @@ const LoginPage = () => {
           </form>
         </div>
       </FormContainer>
-      <Footer />
+      {/* <Footer /> */}
 
     </div>
   )
