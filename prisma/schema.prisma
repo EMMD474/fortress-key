@@ -14,15 +14,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id          String      @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
-  email       String      @unique
+  email       String       @unique
   masterHash  String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @default(now())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
   credentials Credential[]
+  otps        UserOTP[]
 }
 
 model Credential {
@@ -36,3 +36,14 @@ model Credential {
   user          User     @relation(fields: [userId], references: [id])
 }
 
+model UserOTP {
+  id        String   @id @default(uuid())
+  otpHash   String
+  expiresAt  DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
