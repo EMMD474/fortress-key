@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prismaConnect"
 import bcrypt from "bcryptjs";
+import { sendEmail } from "@/lib/emial";
 
 export async function POST(req: Request) {
   try {
@@ -29,6 +30,13 @@ export async function POST(req: Request) {
       },
     });
     console.log("OTP:", otp)
+
+    await sendEmail({
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+      html: `<p>Your OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>`,
+    });
 
     // TODO: send OTP via email/SMS here instead of returning it
     return NextResponse.json({ success: true, otp }); 
