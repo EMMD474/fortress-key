@@ -11,7 +11,8 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       // Avoid email enumeration: always return success even if user doesn't exist
-      return NextResponse.json({ success: true });
+      // return NextResponse.json({ success: true });
+      console.log("Email not found")
     }
 
     // generate OTP

@@ -160,7 +160,6 @@ const ForgotPassword = () => {
     try {
       await api.post("/api/auth/reset-password", {
         email,
-        pin,
         newPassword,
       });
       toast.success("Password reset successfully!");
