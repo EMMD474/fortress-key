@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prismaConnect"
 import bcrypt from "bcryptjs";
-import { sendEmail } from "@/lib/emial";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {

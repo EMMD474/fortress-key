@@ -1,0 +1,16 @@
+
+> fortress-key@0.1.0 dev
+> next dev --turbopack
+
+ ⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
+   ▲ Next.js 15.5.3 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://172.16.187.106:3001
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 948ms
+ ✓ Ready in 3.3s
+   Reload env: .env.local
+[?25h
