@@ -1,7 +1,7 @@
 "use client";
 
 import NavBar from "@/components/navigation/NavBar";
-import SlideShow from "@/components/SlideShow";
+import SlideShow from "@/components/ui/SlideShow";
 import Card from "@/components/ui/Card";
 import Footer from "@/components/ui/Footer";
 import { Lock, Moon, Sun } from "lucide-react";

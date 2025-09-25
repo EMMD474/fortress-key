@@ -29,12 +29,11 @@ export async function POST(req: NextRequest) {
     });
     
     // Send welcome email
-    const emailResult = await sendWelcomeEmail(email, name || email);
-    if (!emailResult.ok) {
-      console.error("Failed to send welcome email:", emailResult.error);
-      // Note: We don't fail the registration if email fails
-      // The user account is still created successfully
-    }
+    // const emailResult = await sendWelcomeEmail(email, name || email);
+    // if (!emailResult.ok) {
+    //   console.error("Failed to send welcome email:", emailResult.error);
+      
+    // }
     
     return NextResponse.json({ message: "User created" }, { status: 201 });
 

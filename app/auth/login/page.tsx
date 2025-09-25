@@ -1,15 +1,15 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Spinner from '@/components/ui/Spinner'
 import FormContainer from '@/components/auth/FormContainer'
 import { toast } from 'sonner'
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation"
-import Footer from '@/components/ui/Footer'
 
 const LoginPage = () => {
+  const { status } = useSession();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -17,6 +17,13 @@ const LoginPage = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+
+  // If a user is already authenticated, redirect to the dashboard
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/dashboard')
+    }
+  }, [status, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

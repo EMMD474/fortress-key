@@ -13,11 +13,7 @@ const NavBar: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" });
-    setDrop(false);
-    toast.success("Logged out successfully");
-  };
+
 
   const dropDown = () => {
     setDrop((prev) => !prev);
@@ -92,19 +88,6 @@ const NavBar: React.FC = () => {
                       <User size={16} />
                       Profile
                     </Link>
-                  </li>
-                  <li className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-2">
-                    <Link href="/settings" className="flex items-center gap-2 w-full">
-                      <Settings size={16} />
-                      Settings
-                    </Link>
-                  </li>
-                  <li
-                    onClick={handleLogout}
-                    className="px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-md cursor-pointer flex items-center gap-2"
-                  >
-                    <LogOut size={16} />
-                    Logout
                   </li>
                 </ul>
               )}
