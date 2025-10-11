@@ -3,46 +3,63 @@
 import CredentialsForm from "@/components/AddCredentials";
 import SideNav from "@/components/navigation/SideNav";
 import PopUpButton from "@/components/ui/PopUpButton";
+import { useSideNav } from "@/context/SideNavContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [modalOpen, setModalOpen] = useState(false);
   const toggleModal = () => setModalOpen((prev) => !prev);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  // Listen for navbar hamburger events to open the mobile sidenav
-  useEffect(() => {
-    const handler = (e: Event) => {
-      setMobileNavOpen(true);
-    };
-    window.addEventListener("toggle-sidenav", handler as EventListener);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileNavOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("toggle-sidenav", handler as EventListener);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, []);
+  const { isOpen, toggle } = useSideNav();
 
   return (
-    <div>
-      {/* Sidebar */}
-      {/* Desktop sidebar (hidden on small screens) */}
-      <SideNav className="hidden lg:flex" />
+    <div className="flex">
+      {/* Sidebar for desktop */}
+      <div className="hidden lg:block">
+        <SideNav />
+      </div>
 
-      {/* Main content area shifted to the right */}
-      <div className="lg:ml-60 min-h-screen flex flex-col">
-        {/* Top right action button */}
+      {/* Animated sidebar for mobile */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="mobile-sidenav"
+            initial={{ x: -80, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -80, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          >
+            {/* Overlay click closes sidenav */}
+            <div
+              className="absolute inset-0"
+              onClick={() => toggle()}
+            ></div>
+
+            {/* Actual sidenav content */}
+            <motion.div
+              initial={{ x: -260 }}
+              animate={{ x: 0 }}
+              exit={{ x: -260 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="relative w-60 h-full bg-gray-900"
+            >
+              <SideNav onNavigate={toggle} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main content area */}
+      <div className="flex-1 lg:ml-60 min-h-screen flex flex-col">
         <div className="p-4 flex justify-end">
           <PopUpButton onClick={toggleModal} />
         </div>
 
-        {/* Page content */}
-        <main className="dark:bg-gray-950 flex-1 p-6 mt-5">{children}</main>
+        <main className="dark:bg-gray-950 flex-1 p-6 mt-5">
+          {children}
+        </main>
       </div>
 
       {/* Modal */}

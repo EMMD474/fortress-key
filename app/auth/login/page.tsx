@@ -7,6 +7,7 @@ import FormContainer from '@/components/auth/FormContainer'
 import { toast } from 'sonner'
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation"
+import { Eye, EyeOff } from "lucide-react"; // 👈 Added icons for toggle
 
 const LoginPage = () => {
   const { status } = useSession();
@@ -16,9 +17,9 @@ const LoginPage = () => {
   })
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false) // 👈 Password visibility toggle state
   const router = useRouter()
 
-  // If a user is already authenticated, redirect to the dashboard
   useEffect(() => {
     if (status === 'authenticated') {
       router.replace('/dashboard')
@@ -31,7 +32,6 @@ const LoginPage = () => {
       ...prev,
       [name]: value
     }))
-    // Clear error when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
@@ -42,19 +42,14 @@ const LoginPage = () => {
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {}
-
-    // Email validation
     if (!formData.email) {
       newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address'
     }
-
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required'
     }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -62,14 +57,10 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateForm()) {
-      return
-    }
-
+    if (!validateForm()) return
     setIsLoading(true)
     
     try {
-
       await signIn("credentials", {
         email: formData.email,
         password: formData.password,
@@ -84,7 +75,7 @@ const LoginPage = () => {
       })
     } catch (error) {
       console.error('Login error:', error)
-      toast.success('Login failed. Please check your credentials.')
+      toast.error('Login failed. Please check your credentials.')
     } finally {
       setIsLoading(false)
     }
@@ -98,11 +89,11 @@ const LoginPage = () => {
             <h2 className="mt-6 text-center text-3xl font-extrabold text-blue-800 dark:text-blue-300">
               Sign in to your account
             </h2>
-            
           </div>
           
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit} >
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
+              {/* Email Input */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Email address
@@ -112,7 +103,6 @@ const LoginPage = () => {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  // required
                   value={formData.email}
                   onChange={handleChange}
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
@@ -125,29 +115,43 @@ const LoginPage = () => {
                 )}
               </div>
 
-              <div>
+              {/* Password Input with Toggle */}
+              <div className="relative">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Password
                 </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  // required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.password ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
-                  } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors hover:border-indigo-400 dark:hover:border-indigo-500`}
-                  placeholder="Enter your password"
-                />
+                <div className="relative mt-1">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`appearance-none relative block w-full px-3 py-2 pr-10 border ${
+                      errors.password ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
+                    } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors hover:border-indigo-400 dark:hover:border-indigo-500`}
+                    placeholder="Enter your password"
+                  />
+
+                  {/* Toggle Icon */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
                 )}
               </div>
             </div>
 
+            {/* Remember + Forgot Password */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -171,6 +175,7 @@ const LoginPage = () => {
               </div>
             </div>
 
+            {/* Submit Button */}
             <div>
               <button
                 type="submit"
@@ -186,6 +191,7 @@ const LoginPage = () => {
                   'Sign in'
                 )}
               </button>
+
               <div className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
                 <Link
@@ -199,8 +205,6 @@ const LoginPage = () => {
           </form>
         </div>
       </FormContainer>
-      {/* <Footer /> */}
-
     </div>
   )
 }

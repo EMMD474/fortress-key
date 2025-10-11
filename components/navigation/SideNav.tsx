@@ -16,6 +16,7 @@ import {
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import Button from "../ui/Button";
+import { useSideNav } from "@/context/SideNavContext";
 
 interface SideNavProps {
   className?: string;
@@ -24,6 +25,7 @@ interface SideNavProps {
 
 const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
   const pathname = usePathname();
+  const { isOpen, setOpen } = useSideNav();
 
   const isActiveLink = (href: string) => {
     return pathname === href;
