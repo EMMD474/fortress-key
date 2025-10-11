@@ -48,11 +48,11 @@ const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
     >
       {/* Top Section */}
       <div className="mt-20 border-t border-gray-700 pb-4">
-        {/* Logo */}
+        {/* Logo */} 
         {/* <div className="flex items-center gap-2 px-6 py-4 text-xl font-bold border-b border-gray-700">
           <KeyRound className="w-5 h-5 text-blue-500" />
           Fortress Key
-        </div> */}
+        </div>
 
         {/* Nav Links */}
         <nav className="mt-10 flex flex-col space-y-4">
