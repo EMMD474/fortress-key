@@ -42,7 +42,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Page content */}
-        <main className="dark:bg-gray-950 flex-1 p-6">{children}</main>
+        <main className="dark:bg-gray-950 flex-1 p-6 mt-5">{children}</main>
       </div>
 
       {/* Modal */}

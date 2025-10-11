@@ -19,13 +19,13 @@ const BannerCard = ({
 }: BannerCardProps) => {
   return (
     <div
-      className={`${bgColor} border ${borderColor} rounded-xl p-6 transition-all duration-200 hover:scale-105 cursor-pointer`}
+      className={`${bgColor} border ${borderColor} rounded-xl p-4 sm:p-6 transition-all duration-200 hover:scale-105 cursor-pointer`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <Icon className={`w-8 h-8 ${color}`} />
-        <span className={`text-3xl font-bold ${color}`}>{count}</span>
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
+        <Icon className={`w-6 h-6 sm:w-8 sm:h-8 ${color}`} />
+        <span className={`text-2xl sm:text-3xl font-bold ${color}`}>{count}</span>
       </div>
-      <h3 className="text-sm font-medium text-slate-300">{title}</h3>
+      <h3 className="text-xs sm:text-sm font-medium text-slate-300">{title}</h3>
     </div>
   );
 };
