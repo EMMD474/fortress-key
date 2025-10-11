@@ -15,14 +15,17 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(uuid())
-  name        String
-  email       String       @unique
-  masterHash  String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now())
-  credentials Credential[]
-  otps        UserOTP[]
+  id             String       @id @default(uuid())
+  firstName      String
+  lastName       String?
+  userName       String
+  email          String       @unique
+  masterHash     String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now())
+  credentials    Credential[]
+  otps           UserOTP[]
+  profilePicture String?
 }
 
 model Credential {
@@ -39,7 +42,7 @@ model Credential {
 model UserOTP {
   id        String   @id @default(uuid())
   otpHash   String
-  expiresAt  DateTime
+  expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
   userId    String

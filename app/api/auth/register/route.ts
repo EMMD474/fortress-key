@@ -6,7 +6,8 @@ import WelcomeEmail from "@/emails/WelcomeEmail";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, firstName, lastName, userName, email, password } = await req.json();
+    // const fullName = (name?.trim() || [firstName, lastName].filter(Boolean).join(" ")).trim();
   
     if (!email || !password) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -21,9 +22,11 @@ export async function POST(req: NextRequest) {
   
     const hashedPassword = await bcrypt.hash(password, 10);
   
-    const newUser = await prisma.user.create({
+    await prisma.user.create({
       data: { 
-        name, 
+        firstName,
+        lastName: lastName || null,
+        userName,
         email, 
         masterHash: hashedPassword }
     });

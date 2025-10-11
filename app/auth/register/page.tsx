@@ -1,136 +1,226 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import Spinner from '@/components/ui/Spinner'
-import FormContainer from '@/components/auth/FormContainer'
-import { api } from '@/lib/api'
-import { toast } from "sonner"
+import React, { useState } from "react";
+import Link from "next/link";
+import Spinner from "@/components/ui/Spinner";
+import FormContainer from "@/components/auth/FormContainer";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({})
-  const [isLoading, setIsLoading] = useState(false)
+    firstName: "",
+    lastName: "",
+    userName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [errors, setErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    userName?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
+      [name]: value,
+    }));
     // Clear error when user starts typing
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: undefined
-      }))
+        [name]: undefined,
+      }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: { name?: string; email?: string; password?: string; confirmPassword?: string } = {}
+    const newErrors: {
+      firstName?: string;
+      lastName?: string;
+      userName?: string;
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+    } = {};
 
     // Name validation
-    if (!formData.name) {
-      newErrors.name = 'Name is required'
+    if (!formData.firstName) {
+      newErrors.firstName = "First name is required";
+    }
+    if (!formData.userName) {
+      newErrors.userName = "Username is required";
     }
 
     // Email validation
     if (!formData.email) {
-      newErrors.email = 'Email is required'
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
+      newErrors.email = "Please enter a valid email address";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters long'
+      newErrors.password = "Password must be at least 6 characters long";
     }
 
     // confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Confirm Password is required'
+      newErrors.confirmPassword = "Confirm Password is required";
     } else if (formData.confirmPassword !== formData.password) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsLoading(true)
-    
+    setIsLoading(true);
+
     try {
-      await api.post("/api/auth/register", formData)
+      await api.post("/api/auth/register", {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        userName: formData.userName,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
       toast.success("Account created Successfully!, Login to continue.");
       setFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-      })
+        firstName: "",
+        lastName: "",
+        userName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
       router.push("/auth/login");
-      
     } catch (error) {
-      console.error('Registration error:', error)
-      toast.error('Registration failed. Please try again.')
+      console.error("Registration error:", error);
+      toast.error("Registration failed. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className='w-full min-h-screen flex flex-col items-center justify-center pt-15'>
+    <div className="w-full min-h-screen flex flex-col items-center justify-center pt-15">
       <FormContainer>
         <div className="max-w-md w-full space-y-8 bg-transparent ">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-blue-800 dark:text-blue-300">
               Create your account
             </h2>
-          
           </div>
-          
+
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                  >
+                    First Name *
+                  </label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
+                      errors.firstName
+                        ? "border-red-300 dark:border-red-400"
+                        : "border-gray-300 dark:border-gray-500"
+                    } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors`}
+                    placeholder="Enter your first name"
+                  />
+                  {errors.firstName && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.firstName}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                  >
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
+                      errors.lastName
+                        ? "border-red-300 dark:border-red-400"
+                        : "border-gray-300 dark:border-gray-500"
+                    } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors`}
+                    placeholder="Enter your last name"
+                  />
+                  {errors.lastName && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.lastName}
+                    </p>
+                  )}
+                </div>
+              </div>
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Full Name
+                <label
+                  htmlFor="userName"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Username *
                 </label>
                 <input
-                  id="name"
-                  name="name"
+                  id="userName"
+                  name="userName"
                   type="text"
-                  // required
-                  value={formData.name}
+                  value={formData.userName}
                   onChange={handleChange}
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.name ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
+                    errors.userName
+                      ? "border-red-300 dark:border-red-400"
+                      : "border-gray-300 dark:border-gray-500"
                   } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors`}
-                  placeholder="Enter your Full Name"
+                  placeholder="Enter your username"
                 />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+                {errors.userName && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.userName}
+                  </p>
                 )}
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Email address
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Email address *
                 </label>
                 <input
                   id="email"
@@ -141,18 +231,25 @@ const RegisterPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.email ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
+                    errors.email
+                      ? "border-red-300 dark:border-red-400"
+                      : "border-gray-300 dark:border-gray-500"
                   } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors`}
                   placeholder="Enter your email"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.email}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Password
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Password *
                 </label>
                 <input
                   id="password"
@@ -163,18 +260,25 @@ const RegisterPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.password ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
+                    errors.password
+                      ? "border-red-300 dark:border-red-400"
+                      : "border-gray-300 dark:border-gray-500"
                   } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors`}
                   placeholder="Enter your password"
                 />
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.password}
+                  </p>
                 )}
               </div>
               {/* confirm password */}
               <div>
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Confirm Password
+                <label
+                  htmlFor="confirm-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Confirm Password *
                 </label>
                 <input
                   id="confirm-password"
@@ -185,12 +289,16 @@ const RegisterPage = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.confirmPassword ? 'border-red-300 dark:border-red-400' : 'border-gray-300 dark:border-gray-500'
+                    errors.confirmPassword
+                      ? "border-red-300 dark:border-red-400"
+                      : "border-gray-300 dark:border-gray-500"
                   } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 focus:z-10 sm:text-sm transition-colors`}
                   placeholder="Confirm your password"
                 />
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
             </div>
@@ -207,7 +315,7 @@ const RegisterPage = () => {
                     Creating account...
                   </div>
                 ) : (
-                  'Create account'
+                  "Create account"
                 )}
               </button>
             </div>
@@ -217,14 +325,17 @@ const RegisterPage = () => {
                 href="/auth/login"
                 className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
               >
-                Already have an Account? <span className='text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300'>Login</span>
+                Already have an Account?{" "}
+                <span className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  Login
+                </span>
               </Link>
             </div>
           </form>
         </div>
       </FormContainer>
     </div>
-  )
-}
+  );
+};
 
-export default RegisterPage
+export default RegisterPage;
