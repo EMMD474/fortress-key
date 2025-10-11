@@ -31,7 +31,9 @@ export default function RootLayout({
         <div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 text-black">
            <Providers>
             <NavBar />
-            {children}
+            <div className="pt-16 sm:pt-20">
+              {children}
+            </div>
           </Providers>
         </div>
       </body>

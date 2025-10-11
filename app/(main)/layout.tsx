@@ -5,26 +5,44 @@ import SideNav from "@/components/navigation/SideNav";
 import PopUpButton from "@/components/ui/PopUpButton";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [modalOpen, setModalOpen] = useState(false);
   const toggleModal = () => setModalOpen((prev) => !prev);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Listen for navbar hamburger events to open the mobile sidenav
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setMobileNavOpen(true);
+    };
+    window.addEventListener("toggle-sidenav", handler as EventListener);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("toggle-sidenav", handler as EventListener);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   return (
     <div>
       {/* Sidebar */}
-      <SideNav />
+      {/* Desktop sidebar (hidden on small screens) */}
+      <SideNav className="hidden lg:flex" />
 
       {/* Main content area shifted to the right */}
-      <div className="ml-60 min-h-screen flex flex-col">
+      <div className="lg:ml-60 min-h-screen flex flex-col">
         {/* Top right action button */}
         <div className="p-4 flex justify-end">
           <PopUpButton onClick={toggleModal} />
         </div>
 
         {/* Page content */}
-        <main className="flex-1 p-6 mt-10">{children}</main>
+        <main className="dark:bg-gray-950 flex-1 p-6">{children}</main>
       </div>
 
       {/* Modal */}

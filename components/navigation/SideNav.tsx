@@ -44,10 +44,10 @@ const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full w-60 bg-gray-900 text-gray-200 flex flex-col justify-between shadow-xl  transform transition-transform ${className}`}
+      className={`fixed top-0 left-0 h-screen w-60 bg-gray-900 text-gray-200 flex flex-col justify-between shadow-xl  transform transition-transform ${className}`}
     >
       {/* Top Section */}
-      <div className="mt-20 border-t border-gray-700 pb-4">
+      <div className="border-t border-gray-700 pb-4">
         {/* Logo */} 
         {/* <div className="flex items-center gap-2 px-6 py-4 text-xl font-bold border-b border-gray-700">
           <KeyRound className="w-5 h-5 text-blue-500" />
