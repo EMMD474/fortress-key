@@ -6,8 +6,7 @@ import WelcomeEmail from "@/emails/WelcomeEmail";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, firstName, lastName, userName, email, password } = await req.json();
-    // const fullName = (name?.trim() || [firstName, lastName].filter(Boolean).join(" ")).trim();
+    const { firstName, lastName, userName, email, password } = await req.json();
   
     if (!email || !password) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });

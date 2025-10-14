@@ -8,7 +8,7 @@ async function main() {
 
   // Check if admin user already exists
   const existingAdmin = await prisma.user.findUnique({
-    where: { email: 'admin@fortress-key.com' }
+    where: { email: 'admin@gmail.com' }
   })
 
   if (existingAdmin) {
@@ -25,7 +25,7 @@ async function main() {
       firstName: 'Admin',
       lastName: 'User',
       userName: 'admin',
-      email: 'admin@fortress-key.com',
+      email: 'admin@gmail.com',
       masterHash: hashedPassword,
     }
   })
@@ -34,7 +34,25 @@ async function main() {
   console.log(`📧 Email: ${adminUser.email}`)
   console.log(`👤 Username: ${adminUser.userName}`)
   console.log(`🔑 Password: Password@true.com`)
+
+  const defaultCategories = [
+    { name: 'Social Media', isDefault: true },
+    { name: 'Banking', isDefault: true },
+    { name: 'Work', isDefault: true },
+    { name: 'Personal', isDefault: true },
+  ];
+
+  for (const category of defaultCategories) {
+    await prisma.category.upsert({
+      where: { name: category.name },
+      update: {},
+      create: category,
+    });
+  }
+
+  console.log('✅ Default categories seeded successfully.');
 }
+
 
 main()
   .catch((e) => {

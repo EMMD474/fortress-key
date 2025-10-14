@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
@@ -15,28 +12,40 @@ datasource db {
 }
 
 model User {
-  id             String       @id @default(uuid())
+  id             String        @id @default(uuid())
   firstName      String
   lastName       String?
   userName       String
-  email          String       @unique
+  email          String        @unique
   masterHash     String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
   credentials    Credential[]
+  categories     Category[]
   otps           UserOTP[]
   profilePicture String?
 }
 
 model Credential {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   label         String
   encryptedData Bytes
   iv            Bytes
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
   userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+  categoryId    Int?
+  category      Category? @relation(fields: [categoryId], references: [id])
+}
+
+model Category {
+  id        Int          @id @default(autoincrement())
+  name      String        @unique
+  isDefault Boolean       @default(false)   // distinguishes system categories
+  userId    String?                           // null = system-wide default
+  user      User?         @relation(fields: [userId], references: [id])
+  credentials Credential[]                   // all credentials under this category
 }
 
 model UserOTP {

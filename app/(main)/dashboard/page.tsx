@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import BannerCard from "@/components/ui/BannerCard";
+import { api } from "@/lib/api";
 import {
   AlertTriangle,
   AlertCircle,
@@ -23,8 +24,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import PasswordModal from "@/components/modals/PasswordModal";
 
 const Dashboard = () => {
+  const [passwordModalOpen, setPasswordModalOpen] = useState(true);
+
   const securityMetrics = [
     {
       title: "Vulnerable Passwords",
@@ -236,6 +240,12 @@ const Dashboard = () => {
           </ResponsiveContainer>
         </div>
       </section>
+
+      {/* modals*/}
+      <PasswordModal
+                isOpen={passwordModalOpen}
+                onClose={() => setPasswordModalOpen(false)}
+            />
     </div>
   );
 };

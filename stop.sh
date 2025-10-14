@@ -1,9 +1,7 @@
 #!/bin/bash
 
+kill $(lsof -ti :3000)
 
 if [ "$(sudo docker ps -q -f name=fortress-postgres)" ]; then
-  pnpm dev
-else
-  sudo docker start fortress-postgres
-  pnpm dev
+    sudo docker stop fortress-postgres
 fi
