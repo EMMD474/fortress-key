@@ -26,8 +26,13 @@ import {
 } from "recharts";
 import PasswordModal from "@/components/modals/PasswordModal";
 
+
 const Dashboard = () => {
-  const [passwordModalOpen, setPasswordModalOpen] = useState(true);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+
+  const runsecurityAudite = () => {
+    console.log("Run Security Audit on all passwords")
+  }
 
   const securityMetrics = [
     {
@@ -70,21 +75,21 @@ const Dashboard = () => {
       icon: PlusCircle,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
-      href: "/vault/add",
+      onClick: () => setPasswordModalOpen(true),
     },
     {
       label: "Run Security Audit",
       icon: ShieldCheck,
       color: "text-green-400",
       bgColor: "bg-green-500/10",
-      href: "/security-audit",
+      onClick: runsecurityAudite,
     },
     {
       label: "Generate Password",
       icon: KeyRound,
       color: "text-yellow-400",
       bgColor: "bg-yellow-500/10",
-      href: "/password-generator",
+      onClick: () => setPasswordModalOpen(true),
     },
   ];
 
@@ -153,12 +158,12 @@ const Dashboard = () => {
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {quickActions.map(({ label, icon: Icon, color, bgColor, href }, i) => (
+          {quickActions.map(({ label, icon: Icon, color, bgColor, onClick}, i) => (
             <motion.a
               key={i}
-              href={href}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
+              onClick={onClick}
               className={`flex items-center justify-between rounded-xl border ${bgColor} ${color} border-gray-800 hover:border-blue-600 transition p-4 cursor-pointer`}
             >
               <div className="flex items-center gap-3">

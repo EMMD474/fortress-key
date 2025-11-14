@@ -38,11 +38,11 @@ const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
       icon: <Dashboard className="w-5 h-5" />,
     },
     { href: "/vault", label: "Vault", icon: <Lock className="w-5 h-5" /> },
-    {
-      href: "/password-generator",
-      label: "Password Generator",
-      icon: <KeyRound className="w-5 h-5" />,
-    },
+    // {
+    //   href: "/password-generator",
+    //   label: "Password Generator",
+    //   icon: <KeyRound className="w-5 h-5" />,
+    // },
     {
       href: "/security-audit",
       label: "Security Audit",
