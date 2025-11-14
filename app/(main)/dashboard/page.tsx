@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import BannerCard from "@/components/ui/BannerCard";
+import AddCredentials from "@/components/AddCredentials";
 import { api } from "@/lib/api";
 import {
   AlertTriangle,
@@ -29,6 +30,7 @@ import PasswordModal from "@/components/modals/PasswordModal";
 
 const Dashboard = () => {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [addCredentialsOpen, setAddCredentialsOpen] = useState(false);
 
   const runsecurityAudite = () => {
     console.log("Run Security Audit on all passwords")
@@ -75,7 +77,7 @@ const Dashboard = () => {
       icon: PlusCircle,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
-      onClick: () => setPasswordModalOpen(true),
+      onClick: () => setAddCredentialsOpen(true),
     },
     {
       label: "Run Security Audit",
@@ -251,6 +253,15 @@ const Dashboard = () => {
                 isOpen={passwordModalOpen}
                 onClose={() => setPasswordModalOpen(false)}
             />
+      
+      {/* Add Credentials Modal */}
+      {addCredentialsOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <AddCredentials onClose={() => setAddCredentialsOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
