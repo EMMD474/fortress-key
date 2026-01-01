@@ -1,4 +1,4 @@
-import { PrismaClient } from '../lib/generated/prisma'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -31,9 +31,9 @@ async function main() {
   })
 
   console.log('✅ Admin user created successfully!')
-  console.log(`📧 Email: ${adminUser.email}`)
-  console.log(`👤 Username: ${adminUser.userName}`)
-  console.log(`🔑 Password: Password@true.com`)
+  console.log(`📧 Email: ${adminUser.email} `)
+  console.log(`👤 Username: ${adminUser.userName} `)
+  console.log(`🔑 Password: Password @true.com`)
 
   const defaultCategories = [
     { name: 'Social Media', isDefault: true },
