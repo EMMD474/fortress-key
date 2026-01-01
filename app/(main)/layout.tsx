@@ -11,12 +11,12 @@ import { useState } from "react";
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [modalOpen, setModalOpen] = useState(false);
   const toggleModal = () => setModalOpen((prev) => !prev);
-  const { isOpen, toggle } = useSideNav();
+  const { isOpen, isCollapsed, toggle } = useSideNav();
 
   return (
     <div className="flex">
       {/* Sidebar for desktop */}
-      <div className="hidden lg:block">
+      <div className={`hidden lg:block transition-all duration-300 ${isCollapsed ? "w-20" : "w-60"}`}>
         <SideNav />
       </div>
 
@@ -43,7 +43,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               animate={{ x: 0 }}
               exit={{ x: -260 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative w-60 h-full bg-gray-900"
+              className={`relative ${isCollapsed ? "w-20" : "w-60"} h-full bg-gray-900`}
             >
               <SideNav onNavigate={toggle} />
             </motion.div>
@@ -52,7 +52,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </AnimatePresence>
 
       {/* Main content area */}
-      <div className="flex-1 lg:ml-60 min-h-screen flex flex-col">
+      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-60"} min-h-screen flex flex-col`}>
         <div className="p-4 flex justify-end">
           <PopUpButton onClick={toggleModal} />
         </div>

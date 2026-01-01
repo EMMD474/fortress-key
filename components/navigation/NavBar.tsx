@@ -11,7 +11,7 @@ const NavBar: React.FC = () => {
   const { data: session, status } = useSession();
   const [darkMode, setDarkMode] = useState(false);
   const pathname = usePathname();
-  const { isOpen, toggle } = useSideNav();
+  const { isOpen, isCollapsed, toggle } = useSideNav();
 
   const firstName = session?.user?.firstName || session?.user?.name;
   const initial = firstName ? firstName.charAt(0).toUpperCase() : "";
@@ -40,9 +40,10 @@ const NavBar: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 ${
-        hasSidebar ? "left-0 lg:left-60" : "left-0"
-      } right-0 h-16 sm:h-20 
+      className={`fixed top-0 ${hasSidebar
+          ? isCollapsed ? "left-0 lg:left-20" : "left-0 lg:left-60"
+          : "left-0"
+        } right-0 h-16 sm:h-20 
       backdrop-blur-md bg-white/70 dark:bg-gray-900/70 border-b border-gray-200/60 dark:border-gray-800/60 
       z-40 transition-all duration-300`}
     >
@@ -51,7 +52,7 @@ const NavBar: React.FC = () => {
         <div className="flex items-center gap-3">
           {hasSidebar && (
             <button
-              type="button" 
+              type="button"
               aria-label="Open menu"
               onClick={() => {
                 toggle()
