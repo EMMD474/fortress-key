@@ -106,23 +106,23 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="text-white min-h-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    <div className="text-white min-h-full px-4 sm:px-6 lg:px-8 py-4 space-y-6">
       {/* Header */}
       <header>
-        <h1 className="text-3xl font-bold text-blue-400">Dashboard</h1>
-        <p className="mt-2 text-gray-400 text-sm sm:text-base">
+        <h1 className="text-2xl font-bold text-blue-400">Dashboard</h1>
+        <p className="mt-1 text-gray-400 text-sm sm:text-base">
           Overview of your vault health, insights, and recent actions.
         </p>
       </header>
 
       {/* Security Metrics */}
       <section>
-        <h2 className="text-xl font-semibold text-slate-100 mb-4">
+        <h2 className="text-lg font-semibold text-slate-100 mb-3">
           Security Health Check
         </h2>
 
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 xl:gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6"
           initial="hidden"
           animate="visible"
           variants={{
@@ -160,7 +160,7 @@ const Dashboard = () => {
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {quickActions.map(({ label, icon: Icon, color, bgColor, onClick}, i) => (
+          {quickActions.map(({ label, icon: Icon, color, bgColor, onClick }, i) => (
             <motion.a
               key={i}
               whileHover={{ scale: 1.03 }}
@@ -250,10 +250,10 @@ const Dashboard = () => {
 
       {/* modals*/}
       <PasswordModal
-                isOpen={passwordModalOpen}
-                onClose={() => setPasswordModalOpen(false)}
-            />
-      
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
+
       {/* Add Credentials Modal */}
       {addCredentialsOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4">

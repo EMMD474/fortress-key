@@ -157,7 +157,7 @@ const CredentialCard: React.FC<CredentialCardProps> = ({ credential, viewMode, o
               <p className="text-gray-400 text-sm truncate">{credential.username}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {credential.category && (
               <span className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">
@@ -204,12 +204,12 @@ const CredentialCard: React.FC<CredentialCardProps> = ({ credential, viewMode, o
       layout
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-blue-500/50 transition-all"
+      className="bg-gray-800 border border-gray-700 rounded-lg p-5 hover:border-blue-500/50 transition-all"
     >
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-semibold">{getInitials(credential.label)}</span>
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm font-semibold">{getInitials(credential.label)}</span>
           </div>
           <div>
             <h3 className="text-white font-semibold">{credential.label}</h3>
@@ -280,9 +280,9 @@ const CredentialCard: React.FC<CredentialCardProps> = ({ credential, viewMode, o
         {credential.website && (
           <div className="flex items-center gap-2 text-gray-400 text-xs">
             <Globe className="w-3 h-3" />
-            <a 
-              href={credential.website} 
-              target="_blank" 
+            <a
+              href={credential.website}
+              target="_blank"
               rel="noopener noreferrer"
               className="hover:text-blue-400 transition-colors truncate"
             >
@@ -322,7 +322,7 @@ const Vault: React.FC = () => {
   const [credentials, setCredentials] = useState<Credential[]>(mockCredentials);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'category'>('name');
@@ -344,7 +344,7 @@ const Vault: React.FC = () => {
       // const response = await fetch('/api/credentials');
       // const data = await response.json();
       // setCredentials(data.credentials);
-      
+
       // For now, use mock data
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
       setCredentials(mockCredentials);
@@ -359,11 +359,11 @@ const Vault: React.FC = () => {
   const filteredCredentials = useMemo(() => {
     let filtered = credentials.filter(credential => {
       const matchesSearch = credential.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          credential.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (credential.website && credential.website.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+        credential.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (credential.website && credential.website.toLowerCase().includes(searchTerm.toLowerCase()));
+
       const matchesCategory = !selectedCategory || credential.category?.name === selectedCategory;
-      
+
       return matchesSearch && matchesCategory;
     });
 
@@ -396,7 +396,7 @@ const Vault: React.FC = () => {
     try {
       // TODO: Replace with actual API call
       // await fetch(`/api/credentials/${id}`, { method: 'DELETE' });
-      
+
       setCredentials(prev => prev.filter(cred => cred.id !== id));
     } catch (error) {
       console.error('Error deleting credential:', error);
@@ -441,13 +441,13 @@ const Vault: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Password Vault</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">Password Vault</h1>
           <p className="text-gray-400">
             {filteredCredentials.length} of {credentials.length} credentials
             {loading && <span className="ml-2 text-blue-400">(Loading...)</span>}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
@@ -458,11 +458,10 @@ const Vault: React.FC = () => {
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`p-2 border rounded-lg transition-colors ${
-              showFilters 
-                ? 'bg-blue-600 border-blue-500 text-white' 
-                : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
-            }`}
+            className={`p-2 border rounded-lg transition-colors ${showFilters
+              ? 'bg-blue-600 border-blue-500 text-white'
+              : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
+              }`}
           >
             <Filter className="w-5 h-5" />
           </button>
@@ -487,7 +486,7 @@ const Vault: React.FC = () => {
             placeholder="Search credentials..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
           />
         </div>
 
@@ -556,8 +555,8 @@ const Vault: React.FC = () => {
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">No credentials found</h3>
           <p className="text-gray-400 mb-6">
-            {searchTerm || selectedCategory 
-              ? 'Try adjusting your search or filters' 
+            {searchTerm || selectedCategory
+              ? 'Try adjusting your search or filters'
               : 'Start by adding your first credential'
             }
           </p>
@@ -568,8 +567,8 @@ const Vault: React.FC = () => {
         </div>
       ) : (
         <div className={
-          viewMode === 'grid' 
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
+          viewMode === 'grid'
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
             : 'space-y-4'
         }>
           <AnimatePresence>

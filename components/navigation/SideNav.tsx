@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface SideNavProps {
   className?: string;
-  onNavigate?: () => void; 
+  onNavigate?: () => void;
 }
 
 const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
@@ -70,16 +70,16 @@ const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
       {/* Top Section */}
       <div className="flex flex-col flex-1">
         {/* Logo */}
-        <div className={`flex items-center ${isCollapsed ? "justify-center" : "px-6"} py-8 transition-all duration-300`}>
+        <div className={`flex items-center ${isCollapsed ? "justify-center" : "px-6"} py-6 transition-all duration-300`}>
           <Link href="/" className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-500/30">
-              <Shield size={24} className="text-white" />
+            <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/30">
+              <Shield size={20} className="text-white" />
             </div>
             {!isCollapsed && (
               <motion.span
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-white font-bold text-xl tracking-tight"
+                className="text-white font-bold text-lg tracking-tight"
               >
                 Fortress Key
               </motion.span>
@@ -96,9 +96,9 @@ const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
                 key={href}
                 href={href}
                 onClick={onNavigate}
-                className={`group relative flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 overflow-hidden ${active
-                    ? "bg-blue-600/15 text-blue-400"
-                    : "hover:bg-white/5 text-gray-400 hover:text-white"
+                className={`group relative flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all duration-200 overflow-hidden ${active
+                  ? "bg-blue-600/15 text-blue-400"
+                  : "hover:bg-white/5 text-gray-400 hover:text-white"
                   }`}
               >
                 {/* Active Indicator */}
@@ -139,7 +139,7 @@ const SideNav: React.FC<SideNavProps> = ({ className = "", onNavigate }) => {
       <div className="p-3 bg-white/5 border-t border-white/5">
         {!isCollapsed && (
           <Button
-            className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all duration-200 mb-2 group"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all duration-200 mb-2 group"
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5 flex-shrink-0 group-hover:-translate-x-1 transition-transform" />

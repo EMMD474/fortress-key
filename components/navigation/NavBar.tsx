@@ -41,9 +41,9 @@ const NavBar: React.FC = () => {
   return (
     <header
       className={`fixed top-0 ${hasSidebar
-          ? isCollapsed ? "left-0 lg:left-20" : "left-0 lg:left-60"
-          : "left-0"
-        } right-0 h-16 sm:h-20 
+        ? isCollapsed ? "left-0 lg:left-20" : "left-0 lg:left-60"
+        : "left-0"
+        } right-0 h-16
       backdrop-blur-md bg-white/70 dark:bg-gray-900/70 border-b border-gray-200/60 dark:border-gray-800/60 
       z-40 transition-all duration-300`}
     >
@@ -67,9 +67,9 @@ const NavBar: React.FC = () => {
           {!hasSidebar && (
             <Link
               href="/"
-              className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-semibold text-xl sm:text-2xl"
+              className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-semibold text-lg sm:text-xl"
             >
-              <KeyRound size={24} />
+              <KeyRound size={22} />
               <span className="hidden sm:inline-block">Fortress Key</span>
             </Link>
           )}

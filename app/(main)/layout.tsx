@@ -53,12 +53,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       {/* Main content area */}
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-60"} min-h-screen flex flex-col`}>
-        <div className="p-4 flex justify-end">
+        <div className="px-6 py-2 flex justify-end">
           <PopUpButton onClick={toggleModal} />
         </div>
 
-        <main className="dark:bg-gray-950 flex-1 p-6 mt-5">
-          {children}
+        <main className="dark:bg-gray-950 flex-1 p-5 mt-2">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
 
