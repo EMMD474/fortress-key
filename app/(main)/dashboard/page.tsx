@@ -106,23 +106,23 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="text-white min-h-full px-4 sm:px-6 lg:px-8 py-4 space-y-6">
+    <div className="text-white min-h-full padding-section space-y-4 sm:space-y-6 lg:space-y-8 xl:space-y-10 2xl:space-y-12">
       {/* Header */}
       <header>
-        <h1 className="text-2xl font-bold text-blue-400">Dashboard</h1>
-        <p className="mt-1 text-gray-400 text-sm sm:text-base">
+        <h1 className="text-responsive-lg font-bold text-blue-400">Dashboard</h1>
+        <p className="mt-1 sm:mt-2 xl:mt-3 text-gray-400 text-responsive-sm">
           Overview of your vault health, insights, and recent actions.
         </p>
       </header>
 
       {/* Security Metrics */}
       <section>
-        <h2 className="text-lg font-semibold text-slate-100 mb-3">
+        <h2 className="text-responsive-md font-semibold text-slate-100 mb-3 sm:mb-4 xl:mb-5 2xl:mb-6">
           Security Health Check
         </h2>
 
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 2xl:gap-8"
           initial="hidden"
           animate="visible"
           variants={{
@@ -156,54 +156,54 @@ const Dashboard = () => {
 
       {/* Quick Actions */}
       <section>
-        <h2 className="text-xl font-semibold text-slate-100 mb-4">
+        <h2 className="text-responsive-md font-semibold text-slate-100 mb-3 sm:mb-4 xl:mb-5 2xl:mb-6">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 xl:gap-5 2xl:gap-6">
           {quickActions.map(({ label, icon: Icon, color, bgColor, onClick }, i) => (
             <motion.a
               key={i}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               onClick={onClick}
-              className={`flex items-center justify-between rounded-xl border ${bgColor} ${color} border-gray-800 hover:border-blue-600 transition p-4 cursor-pointer`}
+              className={`flex items-center justify-between rounded-xl border ${bgColor} ${color} border-gray-800 hover:border-blue-600 transition padding-responsive cursor-pointer`}
             >
-              <div className="flex items-center gap-3">
-                <Icon size={22} />
-                <span className="font-medium">{label}</span>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Icon className="icon-md" />
+                <span className="font-medium text-sm sm:text-base">{label}</span>
               </div>
-              <Lock className="opacity-30" size={18} />
+              <Lock className="opacity-30 w-4 h-4 sm:w-5 sm:h-5" />
             </motion.a>
           ))}
         </div>
       </section>
 
       {/* Recent Activity */}
-      <section className="bg-gray-900/60 rounded-xl p-5 border border-gray-800 shadow-sm">
-        <h2 className="text-lg font-semibold text-blue-300 mb-3">
+      <section className="bg-gray-900/60 rounded-xl padding-card border border-gray-800 shadow-sm">
+        <h2 className="text-responsive-md font-semibold text-blue-300 mb-3 sm:mb-4 xl:mb-5">
           Recent Activity
         </h2>
 
-        <div className="text-gray-500 text-sm space-y-3">
-          <p>No activity yet. Once you add or modify passwords, they’ll appear here.</p>
+        <div className="text-gray-500 text-responsive-sm space-y-2 sm:space-y-3 xl:space-y-4">
+          <p>No activity yet. Once you add or modify passwords, they'll appear here.</p>
           <p className="text-gray-600 italic">
-            Example: “You updated your Gmail password 3 days ago.”
+            Example: "You updated your Gmail password 3 days ago."
           </p>
         </div>
       </section>
 
       {/* Vault Insights Chart */}
-      <section className="bg-gray-900/60 rounded-xl p-5 border border-gray-800 shadow-sm">
-        <h2 className="text-lg font-semibold text-green-300 mb-3">
+      <section className="bg-gray-900/60 rounded-xl padding-card border border-gray-800 shadow-sm">
+        <h2 className="text-responsive-md font-semibold text-green-300 mb-3 sm:mb-4 xl:mb-5">
           Vault Insights
         </h2>
-        <p className="text-gray-500 text-sm mb-4">
+        <p className="text-gray-500 text-responsive-sm mb-3 sm:mb-4 xl:mb-5">
           Track your password security health over the past months.
         </p>
 
-        <div className="w-full h-72">
+        <div className="w-full h-64 sm:h-72 md:h-80 lg:h-96 xl:h-[28rem] 2xl:h-[32rem]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
+            <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -10 }} className="xl:mr-8">
               <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
               <XAxis dataKey="month" stroke="#9ca3af" />
               <YAxis stroke="#9ca3af" />
@@ -256,8 +256,8 @@ const Dashboard = () => {
 
       {/* Add Credentials Modal */}
       {addCredentialsOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-3 sm:p-4 lg:p-6">
+          <div className="w-full max-w-xs sm:max-w-lg lg:max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <AddCredentials onClose={() => setAddCredentialsOpen(false)} />
           </div>
         </div>
