@@ -106,7 +106,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="text-white min-h-full padding-section space-y-4 sm:space-y-6 lg:space-y-8 xl:space-y-10 2xl:space-y-12">
+    <div className="padding-section space-y-4 sm:space-y-6 lg:space-y-8 xl:space-y-10 2xl:space-y-12">
       {/* Header */}
       <header>
         <h1 className="text-responsive-lg font-bold text-blue-400">Dashboard</h1>

@@ -32,12 +32,12 @@ export default function RootLayout({
       >
         <div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 text-black">
           <SideNavProvider>
-           <Providers>
-            <NavBar />
-            <div>
-              {children}
-            </div>
-          </Providers>
+            <Providers>
+              <NavBar />
+              <div className="max-w-7xl mx-auto text-blue-700 ">
+                {children}
+              </div>
+            </Providers>
           </SideNavProvider>
         </div>
       </body>
