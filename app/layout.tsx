@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fortress Key",
-  description: "Secure your digital life with Fortress Key",
+  title: "Fortress-Key",
+  description: "Secure your digital life with Fortress-Key",
 };
 
 export default function RootLayout({

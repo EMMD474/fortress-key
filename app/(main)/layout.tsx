@@ -16,7 +16,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex">
       {/* Sidebar for desktop */}
-      <div className={`hidden lg:block transition-all duration-300 ${isCollapsed ? "w-16 sm:w-20" : "w-56 sm:w-60"}`}>
+      <div className={`hidden lg:block transition-all duration-300`}>
         <SideNav />
       </div>
 
@@ -58,13 +58,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <main className="dark:bg-gray-950 flex-1 p-4 sm:p-5 lg:p-6 mt-2">
-          <div className="max-w-7xl mx-auto">
+          <div className="">
             {children}
           </div>
         </main>
       </div>
 
-      {/* Modal */}
+      {/* Credentials Modal */}
       <AnimatePresence>
         {modalOpen && (
           <motion.div

@@ -75,36 +75,11 @@ const NavBar: React.FC = () => {
           )}
         </div>
 
-        {/* Center Section: Search Bar */}
-        {/* <div className="hidden md:flex flex-1 justify-center px-6">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full pl-9 pr-3 py-2.5 rounded-full text-sm
-                bg-gray-100 dark:bg-gray-800/80 
-                text-gray-900 dark:text-gray-100
-                placeholder-gray-500 dark:placeholder-gray-400
-                border border-gray-200 dark:border-gray-700
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
-          </div>
-        </div> */}
+       
 
         {/* Right Section: Dark Mode + User */}
         <div className="flex items-center gap-3 sm:gap-4">
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-            title="Toggle dark mode"
-          >
-            {darkMode ? (
-              <Sun size={18} className="text-yellow-400" />
-            ) : (
-              <Moon size={18} className="text-blue-700" />
-            )}
-          </button>
+         
 
           {initial ? (
             <Link
