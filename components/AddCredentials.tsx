@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Shield, Eye, EyeOff, Copy, Check, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, Shield, Eye, EyeOff, Copy, Check, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/api";
 
@@ -55,6 +55,7 @@ const AddCredentials: React.FC<AddCredentialsProps> = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showGenerator, setShowGenerator] = useState(false);
 
   // Form fields
   const [title, setTitle] = useState('');
@@ -140,182 +141,226 @@ const AddCredentials: React.FC<AddCredentialsProps> = ({ onClose }) => {
   const strength = password ? calculatePasswordStrength(password) : { score: 0, label: '', color: '' };
 
   return (
-    <div className="shadow-lg p-6 bg-gray-900 rounded-xl border border-gray-800">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="shadow-lg bg-gray-900 rounded-xl border border-gray-800 flex flex-col max-h-[85vh]">
+      {/* Fixed Header */}
+      <div className="flex items-center gap-3 p-6 border-b border-gray-800">
         <Shield className="w-6 h-6 text-blue-400" />
-        <h2 className="text-blue-400 text-xl font-bold">Add New Password</h2>
+        <h2 className="text-white text-xl font-bold">Add New Credential</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Title *</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Gmail Account"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
-            >
-              <option value="">Select category</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Username/Email</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="username or email"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Website</label>
-            <input
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://example.com"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Password Field */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Password *</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter or generate password"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 pr-20 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-            />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="p-1 text-gray-400 hover:text-white transition-colors"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={copyToClipboard}
-                className="p-1 text-gray-400 hover:text-white transition-colors"
-              >
-                {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-          {password && (
-            <div className="mt-2 flex items-center gap-2">
-              <div className="flex-1 bg-gray-700 rounded-full h-2">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    strength.score >= 80 ? 'bg-green-500' :
-                    strength.score >= 60 ? 'bg-blue-500' :
-                    strength.score >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${strength.score}%` }}
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Basic Info Section */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                  Title <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Gmail Account"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                 />
               </div>
-              <span className={`text-xs font-medium ${strength.color}`}>{strength.label}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Notes</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Additional notes (optional)"
-            rows={3}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
-          />
-        </div>
-
-        {/* Password Generator */}
-        <div className="border-t border-gray-700 pt-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Password Generator</h3>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-300">Length</label>
-              <span className="text-blue-400 font-bold">{length}</span>
-            </div>
-            <input
-              type="range"
-              min={8}
-              max={32}
-              value={length}
-              onChange={(e) => setLength(Number(e.target.value))}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-            />
-
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Uppercase', value: useUppercase, setter: setUseUppercase },
-                { label: 'Lowercase', value: useLowercase, setter: setUseLowercase },
-                { label: 'Numbers', value: useNumbers, setter: setUseNumbers },
-                { label: 'Symbols', value: useSymbols, setter: setUseSymbols }
-              ].map((option, index) => (
-                <label
-                  key={index}
-                  className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
-                    option.value
-                      ? 'bg-blue-500/10 border-blue-500/30 text-gray-200'
-                      : 'bg-gray-800 border-gray-700 text-gray-400'
-                  }`}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                 >
-                  <input
-                    type="checkbox"
-                    checked={option.value}
-                    onChange={(e) => option.setter(e.target.checked)}
-                    className="w-4 h-4 accent-blue-500"
-                  />
-                  <span className="text-sm">{option.label}</span>
-                </label>
-              ))}
+                  <option value="">Select category</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Username/Email</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="username or email"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Website</label>
+                <input
+                  type="url"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              Password <span className="text-red-400">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter or generate password"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 pr-20 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                {password && (
+                  <button
+                    type="button"
+                    onClick={copyToClipboard}
+                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
+            </div>
+            {password && (
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex-1 bg-gray-700 rounded-full h-2 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      strength.score >= 80 ? 'bg-green-500' :
+                      strength.score >= 60 ? 'bg-blue-500' :
+                      strength.score >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${strength.score}%` }}
+                  />
+                </div>
+                <span className={`text-xs font-semibold ${strength.color} min-w-[80px] text-right`}>
+                  {strength.label}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Collapsible Password Generator */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
             <button
               type="button"
-              onClick={handleGenerate}
-              disabled={length < 8 || (!useUppercase && !useLowercase && !useNumbers && !useSymbols)}
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white py-2 rounded-lg font-medium transition-all"
+              onClick={() => setShowGenerator(!showGenerator)}
+              className="w-full flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-750 transition-colors"
             >
-              <RefreshCw className="w-4 h-4" />
-              Generate Password
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium text-white">Password Generator</span>
+              </div>
+              {showGenerator ? (
+                <ChevronUp className="w-4 h-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              )}
             </button>
-          </div>
-        </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading || !title || !password}
-          className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 text-white py-3 rounded-lg font-medium transition-all"
-        >
-          {loading ? "Adding Credential..." : "Add Credential"}
-        </button>
-      </form>
+            {showGenerator && (
+              <div className="p-4 bg-gray-800/50 space-y-4 border-t border-gray-700">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-300">Length</label>
+                  <span className="text-blue-400 font-bold text-sm">{length}</span>
+                </div>
+                <input
+                  type="range"
+                  min={8}
+                  max={32}
+                  value={length}
+                  onChange={(e) => setLength(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                />
+
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: 'Uppercase', value: useUppercase, setter: setUseUppercase },
+                    { label: 'Lowercase', value: useLowercase, setter: setUseLowercase },
+                    { label: 'Numbers', value: useNumbers, setter: setUseNumbers },
+                    { label: 'Symbols', value: useSymbols, setter: setUseSymbols }
+                  ].map((option, index) => (
+                    <label
+                      key={index}
+                      className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                        option.value
+                          ? 'bg-blue-500/10 border-blue-500/30 text-gray-200'
+                          : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={option.value}
+                        onChange={(e) => option.setter(e.target.checked)}
+                        className="w-4 h-4 accent-blue-500"
+                      />
+                      <span className="text-sm font-medium">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={length < 8 || (!useUppercase && !useLowercase && !useNumbers && !useSymbols)}
+                  className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white py-2.5 rounded-lg font-medium transition-all"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Generate Password
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Additional notes (optional)"
+              rows={3}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-none transition-all"
+            />
+          </div>
+        </form>
+      </div>
+
+      {/* Fixed Footer */}
+      <div className="p-6 border-t border-gray-800 bg-gray-900">
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            type="button"
+            className="flex-1 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition-all border border-gray-700"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !title || !password}
+            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-500 text-white py-3 rounded-lg font-medium transition-all shadow-lg shadow-blue-500/20 disabled:shadow-none"
+          >
+            {loading ? "Adding..." : "Add Credential"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -90,8 +90,8 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4">
-      <div className="bg-gray-900 rounded-xl w-full max-w-lg shadow-2xl border border-gray-800 overflow-hidden">
-        {/* Header */}
+      <div className="bg-gray-900 rounded-xl w-full max-w-lg shadow-2xl border border-gray-800 flex flex-col max-h-[90vh]">
+        {/* Fixed Header */}
         <div className="bg-gray-800 p-6 border-b border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -100,156 +100,160 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-700 rounded-lg"
+              className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-lg"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Generated Password Display */}
-          {password && (
-            <div className="space-y-3">
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-                <div className="flex items-center justify-between gap-3 mb-3">
-                  <span className="text-gray-100 font-mono text-lg break-all flex-1">
-                    {password}
-                  </span>
-                  <button
-                    onClick={copyToClipboard}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                      copied
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                        : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
-                    }`}
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        Copy
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Password Strength */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400">Password Strength</span>
-                    <span className={`font-semibold ${strength.color}`}>
-                      {strength.label}
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6">
+            {/* Generated Password Display */}
+            {password && (
+              <div className="space-y-3">
+                <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <span className="text-gray-100 font-mono text-lg break-all flex-1 leading-relaxed">
+                      {password}
                     </span>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-500 ${
-                        strength.score >= 80
-                          ? 'bg-green-500'
-                          : strength.score >= 60
-                          ? 'bg-blue-500'
-                          : strength.score >= 40
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
+                    <button
+                      onClick={copyToClipboard}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex-shrink-0 ${
+                        copied
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
                       }`}
-                      style={{ width: `${strength.score}%` }}
-                    />
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Password Strength */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-400 font-medium">Password Strength</span>
+                      <span className={`font-bold ${strength.color}`}>
+                        {strength.label}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          strength.score >= 80
+                            ? 'bg-green-500'
+                            : strength.score >= 60
+                            ? 'bg-blue-500'
+                            : strength.score >= 40
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
+                        }`}
+                        style={{ width: `${strength.score}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Length Slider */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-300">
-                Password Length
-              </label>
-              <span className="text-lg font-bold text-blue-400">{length}</span>
-            </div>
-            <input
-              type="range"
-              min={8}
-              max={32}
-              value={length}
-              onChange={(e) => setLength(Number(e.target.value))}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-            />
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>8</span>
-              <span>32</span>
-            </div>
-          </div>
-
-          {/* Character Options */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-300">Character Types</label>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Uppercase (A-Z)', value: useUppercase, setter: setUseUppercase },
-                { label: 'Lowercase (a-z)', value: useLowercase, setter: setUseLowercase },
-                { label: 'Numbers (0-9)', value: useNumbers, setter: setUseNumbers },
-                { label: 'Symbols (!@#$)', value: useSymbols, setter: setUseSymbols }
-              ].map((option, index) => (
-                <label
-                  key={index}
-                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                    option.value
-                      ? 'bg-blue-500/10 border-blue-500/30 text-gray-200'
-                      : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={option.value}
-                    onChange={(e) => option.setter(e.target.checked)}
-                    className="w-4 h-4 accent-blue-500"
-                  />
-                  <span className="text-sm font-medium">{option.label}</span>
+            {/* Length Slider */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-300">
+                  Password Length
                 </label>
-              ))}
+                <span className="text-xl font-bold text-blue-400 min-w-[3rem] text-right">{length}</span>
+              </div>
+              <input
+                type="range"
+                min={8}
+                max={32}
+                value={length}
+                onChange={(e) => setLength(Number(e.target.value))}
+                className="w-full h-2.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              <div className="flex justify-between text-xs text-gray-500 font-medium">
+                <span>8 characters</span>
+                <span>32 characters</span>
+              </div>
             </div>
+
+            {/* Character Options */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-300">Character Types</label>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Uppercase (A-Z)', value: useUppercase, setter: setUseUppercase },
+                  { label: 'Lowercase (a-z)', value: useLowercase, setter: setUseLowercase },
+                  { label: 'Numbers (0-9)', value: useNumbers, setter: setUseNumbers },
+                  { label: 'Symbols (!@#$)', value: useSymbols, setter: setUseSymbols }
+                ].map((option, index) => (
+                  <label
+                    key={index}
+                    className={`flex items-center gap-3 p-3.5 rounded-lg border cursor-pointer transition-all ${
+                      option.value
+                        ? 'bg-blue-500/10 border-blue-500/30 text-gray-200'
+                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600 hover:bg-gray-800/50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={option.value}
+                      onChange={(e) => option.setter(e.target.checked)}
+                      className="w-4 h-4 accent-blue-500"
+                    />
+                    <span className="text-sm font-medium">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Warnings */}
+            {length < 8 && (
+              <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3.5">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-400 font-medium">
+                  Password length must be at least 8 characters for security.
+                </p>
+              </div>
+            )}
+
+            {!useUppercase && !useLowercase && !useNumbers && !useSymbols && (
+              <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3.5">
+                <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-yellow-400 font-medium">
+                  Please select at least one character type.
+                </p>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Warning */}
-          {length < 8 && (
-            <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-400">
-                Password length must be at least 8 characters for security.
-              </p>
-            </div>
-          )}
-
-          {!useUppercase && !useLowercase && !useNumbers && !useSymbols && (
-            <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-              <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-yellow-400">
-                Please select at least one character type.
-              </p>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
+        {/* Fixed Footer */}
+        <div className="p-6 border-t border-gray-800 bg-gray-900">
+          <div className="flex gap-3">
             <button
               onClick={handleGenerate}
               disabled={length < 8 || (!useUppercase && !useLowercase && !useNumbers && !useSymbols)}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white py-3 rounded-lg font-medium transition-all duration-200"
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-500 text-white py-3 rounded-lg font-medium transition-all shadow-lg shadow-blue-500/20 disabled:shadow-none"
             >
               <RefreshCw className="w-5 h-5" />
               Generate New
             </button>
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition-all duration-200 border border-gray-700"
+              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition-all border border-gray-700"
             >
               Close
             </button>
