@@ -10,7 +10,7 @@ import {
   Info,
   Database,
   ShieldCheck,
-  PlusCircle,
+  Upload,
   KeyRound,
   Lock,
 } from "lucide-react";
@@ -26,11 +26,13 @@ import {
   Legend,
 } from "recharts";
 import PasswordModal from "@/components/modals/PasswordModal";
+import ImportExportModal from "@/components/modals/ImportExportModal";
 
 
 const Dashboard = () => {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [addCredentialsOpen, setAddCredentialsOpen] = useState(false);
+  const [importExportModalOpen, setImportExportModalOpen] = useState(false);
 
   const runsecurityAudite = () => {
     console.log("Run Security Audit on all passwords")
@@ -73,11 +75,11 @@ const Dashboard = () => {
 
   const quickActions = [
     {
-      label: "Add New Password",
-      icon: PlusCircle,
+      label: "Backup & Import",
+      icon: Upload,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
-      onClick: () => setAddCredentialsOpen(true),
+      onClick: () => setImportExportModalOpen(true),
     },
     {
       label: "Run Security Audit",
@@ -252,6 +254,11 @@ const Dashboard = () => {
       <PasswordModal
         isOpen={passwordModalOpen}
         onClose={() => setPasswordModalOpen(false)}
+      />
+
+      <ImportExportModal
+        isOpen={importExportModalOpen}
+        onClose={() => setImportExportModalOpen(false)}
       />
 
       {/* Add Credentials Modal */}
