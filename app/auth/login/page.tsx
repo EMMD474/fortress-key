@@ -20,7 +20,9 @@ const LoginPage = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
+  const [googleIsLoading, setGoogleIsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [gitIsLoading, setGitIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [signEmail, setSignEmail] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -89,7 +91,7 @@ const LoginPage = () => {
 
   // Handle Google Sign In
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
+    setGoogleIsLoading(true);
     try {
       await signIn("google", {
         callbackUrl: "/dashboard",
@@ -97,7 +99,21 @@ const LoginPage = () => {
     } catch (error) {
       console.error("Google sign in error:", error);
       toast.error("Google sign in failed. Please try again.");
-      setIsLoading(false);
+      setGoogleIsLoading(false);
+    }
+  };
+
+  // Handle Google Sign In
+  const handleGithubSignIn = async () => {
+    setGitIsLoading(true);
+    try {
+      await signIn("google", {
+        callbackUrl: "/dashboard",
+      });
+    } catch (error) {
+      console.error("Github sign in error:", error);
+      toast.error("Github sign in failed. Please try again.");
+      setGitIsLoading(false);
     }
   };
 
@@ -120,10 +136,10 @@ const LoginPage = () => {
               {/* Google Sign In Button */}
               <Button 
                 onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full py-3 flex items-center justify-center gap-2 bg-indigo-700 hover:bg-indigo-800"
+                disabled={googleIsLoading}
+                className="w-full py-3 flex items-center justify-center gap-2 bg-indigo-700 hover:bg-indigo-800 cursor-pointer"
               >
-                {isLoading ? (
+                {googleIsLoading ? (
                   <>
                     <Spinner />
                     Signing in...
@@ -138,11 +154,11 @@ const LoginPage = () => {
                 )}
               </Button>
               <Button 
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full py-3 flex items-center justify-center gap-2 bg-indigo-700 hover:bg-indigo-800"
+                onClick={handleGithubSignIn}
+                disabled={gitIsLoading}
+                className="w-full py-3 flex items-center justify-center gap-2 bg-indigo-700 hover:bg-indigo-800 cursor-pointer"
               >
-                {isLoading ? (
+                {gitIsLoading ? (
                   <>
                     <Spinner />
                     Signing in...
@@ -170,7 +186,7 @@ const LoginPage = () => {
               {/* Email Sign In Button */}
               <Button 
                 onClick={() => setSignEmail(true)}
-                className="w-full py-3 flex items-center justify-center gap-2"
+                className="w-full py-3 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Mail size={18} />
                 Sign in with Email
