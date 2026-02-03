@@ -52,12 +52,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </AnimatePresence>
 
       {/* Main content area */}
-      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-60"} min-h-screen flex flex-col`}>
-        <div className="p-4 flex justify-end">
+      <div className="flex-1 min-h-screen flex flex-col">
+        <div className="flex justify-end p-4">
           <PopUpButton onClick={toggleModal} />
         </div>
 
-        <main className="dark:bg-gray-950 flex-1 p-6 mt-5">
+        <main className="dark:bg-gray-950 flex-1 px-4 lg:px-6">
           {children}
         </main>
       </div>
