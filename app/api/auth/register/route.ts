@@ -1,7 +1,7 @@
 import prisma from "@/lib/prismaConnect"
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-import { sendEmail } from "@/lib/email";
+// import { sendEmail } from "@/lib/email";
 import WelcomeEmail from "@/emails/WelcomeEmail";
 
 export async function POST(req: NextRequest) {
@@ -45,11 +45,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-const sendWelcomeEmail = async (email: string, username: string) => {
-  return await sendEmail({
-    to: email,
-    subject: "Welcome to Fortress Key",
-    react: WelcomeEmail({ username }),
-    text: `Hi ${username}, Welcome to Fortress Key! Thanks for signing up and taking your first step in securing your passwords.`,
-  });
-}
+// const sendWelcomeEmail = async (email: string, username: string) => {
+//   return await sendEmail({
+//     to: email,
+//     subject: "Welcome to Fortress Key",
+//     react: WelcomeEmail({ username }),
+//     text: `Hi ${username}, Welcome to Fortress Key! Thanks for signing up and taking your first step in securing your passwords.`,
+//   });
+// }

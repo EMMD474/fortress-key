@@ -16,7 +16,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex">
       {/* Sidebar for desktop */}
-      <div className={`hidden lg:block transition-all duration-300`}>
+      <div className={`hidden lg:block transition-all duration-300 ${isCollapsed ? "w-20" : "w-60"}`}>
         <SideNav />
       </div>
 
@@ -43,7 +43,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               animate={{ x: 0 }}
               exit={{ x: -224 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className={`relative ${isCollapsed ? "w-16 sm:w-20" : "w-56 sm:w-60"} h-full bg-gray-900`}
+              className={`relative ${isCollapsed ? "w-20" : "w-60"} h-full bg-gray-900`}
             >
               <SideNav onNavigate={toggle} />
             </motion.div>
@@ -52,15 +52,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </AnimatePresence>
 
       {/* Main content area */}
-      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? "lg:ml-16 xl:ml-20" : "lg:ml-56 xl:ml-60"} min-h-screen flex flex-col`}>
-        <div className="px-4 sm:px-6 py-2 flex justify-end">
+      <div className="flex-1 min-h-screen flex flex-col">
+        <div className="flex justify-end p-4">
           <PopUpButton onClick={toggleModal} />
         </div>
 
-        <main className="dark:bg-gray-950 flex-1 p-4 sm:p-5 lg:p-6 mt-2">
-          <div className="">
-            {children}
-          </div>
+        <main className="dark:bg-gray-950 flex-1 px-4 lg:px-6">
+          {children}
         </main>
       </div>
 
