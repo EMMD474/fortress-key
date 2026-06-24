@@ -14,6 +14,9 @@ export interface KdfParams {
   iterations: number;
   /** Degree of parallelism (lanes). */
   parallelism: number;
+  // All params are numbers; the index signature lets this serialize directly as
+  // a Prisma JSON value without a cast.
+  [key: string]: number;
 }
 
 /**

@@ -17,6 +17,8 @@ import {
   encryptCredential,
   decryptCredential,
 } from './vault';
+import { formatRecoveryKey, parseRecoveryKey } from './recoveryKey';
+import { bundleToWire, wireToBundle } from './wire';
 import { DEFAULT_KDF_PARAMS, KEY_BYTES, IV_BYTES, TAG_BYTES, SALT_BYTES } from './constants';
 
 // Use a deliberately cheap KDF in tests so Argon2id doesn't make the suite slow.
@@ -186,5 +188,37 @@ describe('End-to-end vault flows', () => {
       generateKey(),
     );
     await expect(decryptCredential(bundle, generateKey())).rejects.toThrow();
+  });
+});
+
+describe('Recovery key encoding', () => {
+  it('round-trips key bytes through the formatted string', () => {
+    const key = generateKey();
+    const formatted = formatRecoveryKey(key);
+    expect(formatted).toMatch(/^[0-9A-HJKMNP-TV-Z-]+$/); // Crockford base32 + dashes
+    expect(bytesEqual(parseRecoveryKey(formatted), key)).toBe(true);
+  });
+
+  it('tolerates spaces, lowercase, and O/0 and I/1 confusions', () => {
+    const key = generateKey();
+    const messy = formatRecoveryKey(key).toLowerCase().replace(/-/g, ' ');
+    expect(bytesEqual(parseRecoveryKey(messy), key)).toBe(true);
+  });
+
+  it('rejects a key of the wrong length', () => {
+    expect(() => parseRecoveryKey('ABCDE-ABCDE')).toThrow();
+  });
+});
+
+describe('Wire (de)serialization', () => {
+  it('round-trips a cipher bundle through base64', async () => {
+    const bundle = await encryptCredential(
+      { username: 'u', password: 'p', website: 'w', notes: 'n' },
+      generateKey(),
+    );
+    const restored = wireToBundle(bundleToWire(bundle));
+    expect(bytesEqual(restored.ciphertext, bundle.ciphertext)).toBe(true);
+    expect(bytesEqual(restored.iv, bundle.iv)).toBe(true);
+    expect(bytesEqual(restored.tag, bundle.tag)).toBe(true);
   });
 });
