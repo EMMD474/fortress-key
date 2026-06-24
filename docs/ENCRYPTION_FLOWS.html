@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fortress Key — Encryption Flows</title>
+<style>
+  :root {
+    --bg:#0b1120; --panel:#111a2e; --panel-2:#16223c; --border:#233252;
+    --text:#e2e8f0; --muted:#94a3b8; --accent:#3b82f6; --accent-2:#60a5fa;
+    --green:#34d399; --amber:#fbbf24; --red:#f87171; --purple:#a78bfa; --cyan:#22d3ee;
+    --mono: ui-monospace,"SF Mono","Cascadia Code","Fira Code",Consolas,monospace;
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    margin:0; color:var(--text); line-height:1.6;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -200px,#15233f 0%,var(--bg) 60%);
+  }
+  .wrap { max-width:1080px; margin:0 auto; padding:0 24px 96px; }
+  header.hero { text-align:center; padding:64px 24px 36px; }
+  .logo { display:inline-flex; align-items:center; gap:12px; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:var(--accent-2); font-weight:600; }
+  .logo .key { font-size:26px; }
+  h1 { font-size:42px; margin:14px 0 8px; letter-spacing:-1px; }
+  .hero p { color:var(--muted); font-size:18px; max-width:660px; margin:0 auto; }
+  .pill { display:inline-block; margin-top:18px; background:var(--panel); border:1px solid var(--border); color:var(--green); font-size:13px; padding:6px 14px; border-radius:999px; }
+  nav.toc { position:sticky; top:0; z-index:20; background:rgba(11,17,32,.82); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; flex-wrap:wrap; gap:4px; justify-content:center; padding:12px; margin-bottom:40px; }
+  nav.toc a { color:var(--muted); text-decoration:none; font-size:13.5px; padding:6px 12px; border-radius:8px; transition:.15s; }
+  nav.toc a:hover { color:var(--text); background:var(--panel-2); }
+  section { margin:56px 0; scroll-margin-top:64px; }
+  h2 { font-size:25px; margin:0 0 6px; display:flex; align-items:center; gap:12px; }
+  h2 .num { font-size:14px; color:var(--accent-2); border:1px solid var(--border); background:var(--panel); border-radius:8px; width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .lead { color:var(--muted); margin:4px 0 22px; }
+  code { font-family:var(--mono); font-size:.86em; background:#0c1424; border:1px solid var(--border); padding:2px 6px; border-radius:5px; color:#cbd5e1; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px 24px; margin:18px 0; }
+
+  /* key hierarchy diagram */
+  .hier { display:grid; grid-template-columns:1fr; gap:0; }
+  .krow { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .kbox { background:#0c1424; border:1px solid var(--border); border-radius:10px; padding:12px 16px; min-width:150px; }
+  .kbox .kt { font-weight:700; font-size:14px; }
+  .kbox .ks { font-size:11.5px; color:var(--muted); font-family:var(--mono); margin-top:3px; }
+  .kbox.master { border-color:var(--accent); }
+  .kbox.recovery { border-color:var(--amber); }
+  .kbox.vault { border-color:var(--green); }
+  .kbox.cred { border-color:var(--purple); }
+  .kop { font-family:var(--mono); font-size:12px; color:var(--cyan); white-space:nowrap; }
+  .vstack { display:flex; flex-direction:column; gap:10px; }
+  .karrow { color:var(--border); font-size:20px; text-align:center; padding:6px 0; }
+
+  /* lane flow */
+  .lanes { display:grid; grid-template-columns:110px 1fr; gap:0; }
+  .lane-head { font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.6px; padding:10px 12px; color:var(--muted); border-bottom:1px solid var(--border); display:flex; align-items:center; }
+  .lane-head.client { color:var(--accent-2); }
+  .lane-head.server { color:var(--green); }
+  .lane-cell { border-bottom:1px solid var(--border); padding:12px; }
+  .lane-cell:nth-last-child(-n+2) { border-bottom:none; }
+  .actor-client { background:linear-gradient(90deg, rgba(59,130,246,.06), transparent); }
+  .actor-server { background:linear-gradient(90deg, rgba(52,211,153,.06), transparent); }
+  .stepnum { display:inline-flex; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; align-items:center; justify-content:center; margin-right:8px; vertical-align:middle; }
+  .actor-server .stepnum { background:var(--green); color:#06281c; }
+  .lane-cell .desc { display:inline; }
+  .lane-cell .mono { display:block; font-family:var(--mono); font-size:12px; color:var(--cyan); margin-top:6px; margin-left:32px; }
+  .wire { text-align:center; color:var(--amber); font-family:var(--mono); font-size:12px; padding:8px; border-bottom:1px solid var(--border); background:rgba(251,191,36,.05); }
+
+  .note { border-left:4px solid var(--accent); background:var(--panel); border-radius:0 10px 10px 0; padding:14px 18px; margin:18px 0; }
+  .note.warn { border-left-color:var(--amber); }
+  .note.danger { border-left-color:var(--red); }
+  .note.good { border-left-color:var(--green); }
+  .note .tag { font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
+  .note.warn .tag { color:var(--amber); } .note.danger .tag { color:var(--red); }
+  .note.good .tag { color:var(--green); } .note .tag.info { color:var(--accent-2); }
+
+  table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent-2); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+  .yes { color:var(--green); } .no { color:var(--red); }
+  footer { text-align:center; color:var(--muted); font-size:13px; margin-top:60px; padding-top:24px; border-top:1px solid var(--border); }
+  .legend { display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:14px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { width:12px; height:12px; border-radius:3px; display:inline-block; border:1px solid var(--border); }
+  @media (max-width:720px){ h1{font-size:32px;} .lanes{grid-template-columns:72px 1fr;} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="logo"><span class="key">🔐</span> Fortress Key</div>
+  <h1>Encryption Flows</h1>
+  <p>Visual companion to <code>ENCRYPTION_DESIGN.md</code> — how keys are derived, how the vault is locked and unlocked, and what the server is allowed to see.</p>
+  <div class="pill">Zero-Knowledge · Client-side E2E · Argon2id + AES-256-GCM</div>
+</header>
+
+<nav class="toc">
+  <a href="#hierarchy">Key Hierarchy</a>
+  <a href="#signup">Signup</a>
+  <a href="#unlock">Unlock</a>
+  <a href="#recovery">Recovery</a>
+  <a href="#visibility">Server Visibility</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- HIERARCHY -->
+  <section id="hierarchy">
+    <h2><span class="num">1</span> Key Hierarchy</h2>
+    <p class="lead">Credentials are <em>not</em> encrypted with the master password. A random <b>Vault Key</b> sits in the middle; the server stores wrapped (encrypted) copies of it.</p>
+    <div class="card">
+      <div class="hier">
+        <div class="krow">
+          <div class="kbox master"><div class="kt">Master Password</div><div class="ks">user types · never sent</div></div>
+          <span class="kop">— Argon2id(salt) →</span>
+          <div class="kbox master"><div class="kt">Master Key</div><div class="ks">in-memory only</div></div>
+          <span class="kop">— wraps →</span>
+          <div class="kbox" style="border-color:var(--cyan)"><div class="kt">wrappedVaultKey</div><div class="ks">stored on server</div></div>
+        </div>
+        <div class="karrow">▼ &nbsp; both wrapped copies decrypt to the same Vault Key</div>
+        <div class="krow">
+          <div class="kbox recovery"><div class="kt">Recovery Key</div><div class="ks">shown once · user saves</div></div>
+          <span class="kop">— wraps →</span>
+          <div class="kbox" style="border-color:var(--cyan)"><div class="kt">wrappedRecoveryKey</div><div class="ks">stored on server</div></div>
+        </div>
+        <div class="karrow">▼ &nbsp; unwrap (Master Key or Recovery Key)</div>
+        <div class="krow">
+          <div class="kbox vault"><div class="kt">🔑 VAULT KEY</div><div class="ks">random 256-bit · in-memory</div></div>
+          <span class="kop">— AES-256-GCM →</span>
+          <div class="kbox cred"><div class="kt">Credential ciphertext</div><div class="ks">encryptedData + iv + tag</div></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--accent)"></i>derived from password</span>
+        <span><i style="background:var(--amber)"></i>recovery secret</span>
+        <span><i style="background:var(--green)"></i>vault key (encrypts data)</span>
+        <span><i style="background:var(--cyan)"></i>stored on server (opaque)</span>
+        <span><i style="background:var(--purple)"></i>credential data</span>
+      </div>
+    </div>
+    <div class="note good">
+      <span class="tag">Why the middle key?</span>
+      The Vault Key indirection lets a user <b>change their master password without re-encrypting the whole vault</b> (only the wrapped key changes) and makes <b>recovery</b> possible without the server ever holding a backdoor.
+    </div>
+  </section>
+
+  <!-- SIGNUP -->
+  <section id="signup">
+    <h2><span class="num">2</span> Signup Flow</h2>
+    <p class="lead">Everything cryptographic happens in the browser. The server receives only random salts, a verifier, and encrypted blobs.</p>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div class="lanes">
+        <div class="lane-head client">Browser</div>
+        <div class="lane-head client" style="border-left:1px solid var(--border);">Action</div>
+
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">1</span><span class="desc">Generate random <code>salt</code>, <code>vaultKey</code> (256-bit), <code>recoveryKey</code> (256-bit).</span></div>
+
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">2</span><span class="desc">Derive keys from the master password.</span><span class="mono">masterKey = Argon2id(masterPassword, salt)
+authHash = HKDF(masterKey, "auth")</span></div>
+
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">3</span><span class="desc">Wrap the Vault Key twice (AES-256-GCM).</span><span class="mono">wrappedVaultKey   = enc(vaultKey, masterKey)
+wrappedRecoveryKey = enc(vaultKey, recoveryKey)</span></div>
+      </div>
+      <div class="wire">▼ &nbsp; POST /api/auth/register &nbsp;—&nbsp; salt, kdfParams, authHash, wrappedVaultKey, wrappedRecoveryKey &nbsp;(no password, no plaintext key) &nbsp; ▼</div>
+      <div class="lanes">
+        <div class="lane-head server">Server</div>
+        <div class="lane-head server" style="border-left:1px solid var(--border);">Action</div>
+
+        <div class="lane-cell actor-server">🖥️ Server</div>
+        <div class="lane-cell actor-server"><span class="stepnum">4</span><span class="desc">Hash <code>authHash</code> again with argon2 and store the user row + blobs. Cannot derive any key from this.</span></div>
+      </div>
+      <div class="wire" style="background:rgba(59,130,246,.05); color:var(--accent-2);">▲ &nbsp; 201 Created &nbsp; ▲</div>
+      <div class="lanes">
+        <div class="lane-head client">Browser</div>
+        <div class="lane-head client" style="border-left:1px solid var(--border);">Action</div>
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">5</span><span class="desc"><b>Display the Recovery Key once.</b> User must confirm they saved it before the account is usable.</span></div>
+      </div>
+    </div>
+    <div class="note danger">
+      <span class="tag">Critical UX</span>
+      The Recovery Key is shown exactly once and never reaches the server in plaintext. If the user loses it <em>and</em> forgets the master password, the data is unrecoverable. Say this plainly on screen.
+    </div>
+  </section>
+
+  <!-- UNLOCK -->
+  <section id="unlock">
+    <h2><span class="num">3</span> Unlock Flow (Login + Decrypt)</h2>
+    <p class="lead">Login proves identity with a verifier; decryption happens locally with the unwrapped Vault Key.</p>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div class="lanes">
+        <div class="lane-head client">Browser</div>
+        <div class="lane-head client" style="border-left:1px solid var(--border);">Action</div>
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">1</span><span class="desc">Fetch public <code>salt</code> + <code>kdfParams</code> for the email, then derive keys.</span><span class="mono">masterKey = Argon2id(masterPassword, salt)
+authHash  = HKDF(masterKey, "auth")</span></div>
+      </div>
+      <div class="wire">▼ &nbsp; NextAuth authorize() &nbsp;—&nbsp; sends authHash (not the password) &nbsp; ▼</div>
+      <div class="lanes">
+        <div class="lane-head server">Server</div>
+        <div class="lane-head server" style="border-left:1px solid var(--border);">Action</div>
+        <div class="lane-cell actor-server">🖥️ Server</div>
+        <div class="lane-cell actor-server"><span class="stepnum">2</span><span class="desc">Verify <code>argon2(authHash)</code> against the stored hash → issue a 15-min JWT session.</span></div>
+      </div>
+      <div class="wire" style="background:rgba(59,130,246,.05); color:var(--accent-2);">▲ &nbsp; session + wrappedVaultKey + credential ciphertext &nbsp; ▲</div>
+      <div class="lanes">
+        <div class="lane-head client">Browser</div>
+        <div class="lane-head client" style="border-left:1px solid var(--border);">Action</div>
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">3</span><span class="desc">Unwrap the Vault Key and hold it in memory for the session.</span><span class="mono">vaultKey = dec(wrappedVaultKey, masterKey)</span></div>
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">4</span><span class="desc">Decrypt each credential locally. Plaintext never leaves the device.</span><span class="mono">{username,password,…} = dec(encryptedData, vaultKey)</span></div>
+      </div>
+    </div>
+    <div class="note warn">
+      <span class="tag">Key lifetime</span>
+      The Vault Key lives only in browser memory. On a full page reload it is discarded and the user re-enters the master password to re-unlock (safest default).
+    </div>
+  </section>
+
+  <!-- RECOVERY -->
+  <section id="recovery">
+    <h2><span class="num">4</span> Recovery Flow (Forgot Master Password)</h2>
+    <p class="lead">The saved Recovery Key unwraps the same Vault Key, so a new master password can be set with zero data loss — and the server still never sees plaintext.</p>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div class="lanes">
+        <div class="lane-head client">Browser</div>
+        <div class="lane-head client" style="border-left:1px solid var(--border);">Action</div>
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">1</span><span class="desc">User enters their saved Recovery Key; fetch <code>wrappedRecoveryKey</code>.</span></div>
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">2</span><span class="desc">Unwrap the Vault Key — data is intact.</span><span class="mono">vaultKey = dec(wrappedRecoveryKey, recoveryKey)</span></div>
+        <div class="lane-cell actor-client">🧑 Client</div>
+        <div class="lane-cell actor-client"><span class="stepnum">3</span><span class="desc">User sets a new master password → new <code>salt</code>, <code>masterKey</code>, <code>authHash</code>, and re-wrap.</span><span class="mono">wrappedVaultKey' = enc(vaultKey, masterKey')</span></div>
+      </div>
+      <div class="wire">▼ &nbsp; POST new authHash + wrappedVaultKey' &nbsp; ▼</div>
+      <div class="lanes">
+        <div class="lane-head server">Server</div>
+        <div class="lane-head server" style="border-left:1px solid var(--border);">Action</div>
+        <div class="lane-cell actor-server">🖥️ Server</div>
+        <div class="lane-cell actor-server"><span class="stepnum">4</span><span class="desc">Replace the stored verifier + wrapped key. Never saw the Vault Key or either password.</span></div>
+      </div>
+    </div>
+    <div class="note danger">
+      <span class="tag">Hard limit</span>
+      No Recovery Key <b>and</b> a forgotten master password = permanent, unrecoverable loss. This is inherent to zero-knowledge; there is no server-side backdoor by design.
+    </div>
+  </section>
+
+  <!-- VISIBILITY -->
+  <section id="visibility">
+    <h2><span class="num">5</span> What the Server Can &amp; Cannot See</h2>
+    <p class="lead">The credentials API becomes a dumb, secure blob store. There is no plaintext on the server for a breach to leak.</p>
+    <table>
+      <tr><th>Value</th><th>On the server?</th><th>Form</th></tr>
+      <tr><td>Email, profile, category names</td><td class="yes">✔ Yes</td><td>plaintext (non-secret)</td></tr>
+      <tr><td>salt, kdfParams, IVs, auth tags</td><td class="yes">✔ Yes</td><td>plaintext (non-secret by design)</td></tr>
+      <tr><td>authHash (login verifier)</td><td class="yes">✔ Yes</td><td>argon2-hashed; cannot derive keys</td></tr>
+      <tr><td>wrappedVaultKey / wrappedRecoveryKey</td><td class="yes">✔ Yes</td><td>encrypted blob (opaque)</td></tr>
+      <tr><td>Credential fields (username, password, …)</td><td class="yes">✔ Yes</td><td>ciphertext only (opaque)</td></tr>
+      <tr><td>Master password</td><td class="no">✗ Never</td><td>—</td></tr>
+      <tr><td>Master Key / Recovery Key / Vault Key</td><td class="no">✗ Never</td><td>—</td></tr>
+      <tr><td>Any credential in plaintext</td><td class="no">✗ Never</td><td>—</td></tr>
+    </table>
+    <div class="note good">
+      <span class="tag">Residual trust</span>
+      The one thing users still trust us with is shipping honest client code. Mitigate with Subresource Integrity, a strict CSP, dependency scanning, and a third-party audit before public launch.
+    </div>
+  </section>
+
+  <footer>
+    Fortress Key — Encryption Flows · companion to <code>docs/ENCRYPTION_DESIGN.md</code> · generated from the approved Stage 1 design.
+  </footer>
+
+</div>
+</body>
+</html>
