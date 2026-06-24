@@ -1,178 +1,99 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { PrismaClient } from '@/lib/generated/prisma';
-import crypto from 'crypto';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prismaConnect";
+import { getSessionUserId } from "@/lib/server/session";
+import { updateCredentialSchema } from "@/lib/server/credentialSchemas";
+import { encodeBundle } from "@/lib/server/wire";
 
-const prisma = new PrismaClient();
+// Per-credential blob operations. Like the collection route, the server only
+// stores and serves opaque ciphertext, always scoped to the owner's userId
+// (docs/ENCRYPTION_DESIGN.md §5).
 
-// GET - Fetch a specific credential
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession();
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+type Context = { params: Promise<{ id: string }> };
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
+// GET /api/credentials/:id — return one credential blob.
+export async function GET(_request: NextRequest, { params }: Context) {
+  const userId = await getSessionUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { id } = await params;
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+  const credential = await prisma.credential.findFirst({
+    where: { id, userId },
+    include: { category: true },
+  });
+  if (!credential) {
+    return NextResponse.json({ error: "Credential not found" }, { status: 404 });
+  }
 
-    const credential = await prisma.credential.findFirst({
-      where: { 
-        id: params.id,
-        userId: user.id,
-      },
-      include: {
-        category: true,
-      },
-    });
-
-    if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
-    }
-
-    // In a real implementation, decrypt the credential data here
-    const decryptedCredential = {
+  return NextResponse.json({
+    credential: {
       id: credential.id,
       label: credential.label,
-      username: 'decrypted_username',
-      password: 'decrypted_password',
-      website: 'decrypted_website',
-      notes: 'decrypted_notes',
+      ...encodeBundle(credential.encryptedData, credential.iv, credential.tag),
       category: credential.category,
+      categoryId: credential.categoryId,
       createdAt: credential.createdAt,
       updatedAt: credential.updatedAt,
-    };
-
-    return NextResponse.json({ credential: decryptedCredential });
-  } catch (error) {
-    console.error('Error fetching credential:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    },
+  });
 }
 
-// PUT - Update a credential
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession();
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const body = await request.json();
-    const { label, username, password, website, notes, categoryId, masterPassword } = body;
-
-    // Verify the credential belongs to the user
-    const existingCredential = await prisma.credential.findFirst({
-      where: { 
-        id: params.id,
-        userId: user.id,
-      },
-    });
-
-    if (!existingCredential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
-    }
-
-    // In a real implementation, verify master password and encrypt data
-    const credentialData = JSON.stringify({
-      username: username || '',
-      password: password || '',
-      website: website || '',
-      notes: notes || '',
-    });
-
-    const mockEncrypted = Buffer.from(credentialData, 'utf8');
-    const mockIv = crypto.randomBytes(16);
-
-    const updatedCredential = await prisma.credential.update({
-      where: { id: params.id },
-      data: {
-        label: label || existingCredential.label,
-        encryptedData: mockEncrypted,
-        iv: mockIv,
-        categoryId: categoryId !== undefined ? categoryId : existingCredential.categoryId,
-        updatedAt: new Date(),
-      },
-      include: {
-        category: true,
-      },
-    });
-
-    return NextResponse.json({ 
-      message: 'Credential updated successfully',
-      credential: {
-        id: updatedCredential.id,
-        label: updatedCredential.label,
-        category: updatedCredential.category,
-        updatedAt: updatedCredential.updatedAt,
-      }
-    });
-  } catch (error) {
-    console.error('Error updating credential:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+// PUT /api/credentials/:id — replace a credential blob.
+export async function PUT(request: NextRequest, { params }: Context) {
+  const userId = await getSessionUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { id } = await params;
+
+  const existing = await prisma.credential.findFirst({ where: { id, userId } });
+  if (!existing) {
+    return NextResponse.json({ error: "Credential not found" }, { status: 404 });
+  }
+
+  const parsed = updateCredentialSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { label, encryptedData, iv, tag, categoryId } = parsed.data;
+
+  const updated = await prisma.credential.update({
+    where: { id },
+    data: {
+      label: label ?? existing.label,
+      encryptedData: Buffer.from(encryptedData, "base64"),
+      iv: Buffer.from(iv, "base64"),
+      tag: Buffer.from(tag, "base64"),
+      categoryId: categoryId !== undefined ? categoryId : existing.categoryId,
+    },
+    include: { category: true },
+  });
+
+  return NextResponse.json({
+    message: "Credential updated",
+    credential: {
+      id: updated.id,
+      label: updated.label,
+      category: updated.category,
+      updatedAt: updated.updatedAt,
+    },
+  });
 }
 
-// DELETE - Delete a credential
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession();
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Verify the credential belongs to the user
-    const credential = await prisma.credential.findFirst({
-      where: { 
-        id: params.id,
-        userId: user.id,
-      },
-    });
-
-    if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
-    }
-
-    await prisma.credential.delete({
-      where: { id: params.id },
-    });
-
-    return NextResponse.json({ message: 'Credential deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting credential:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+// DELETE /api/credentials/:id — remove a credential.
+export async function DELETE(_request: NextRequest, { params }: Context) {
+  const userId = await getSessionUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { id } = await params;
+
+  // Scope the delete by userId so one user can't delete another's row.
+  const result = await prisma.credential.deleteMany({ where: { id, userId } });
+  if (result.count === 0) {
+    return NextResponse.json({ error: "Credential not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ message: "Credential deleted" });
 }
