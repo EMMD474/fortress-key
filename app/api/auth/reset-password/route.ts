@@ -1,36 +1,46 @@
 import prisma from "@/lib/prismaConnect";
-import bcrypt from "bcryptjs";
 import { NextResponse, NextRequest } from "next/server";
+import { hashVerifier } from "@/lib/server/verifier";
+import { decodeBundle } from "@/lib/server/wire";
+import type { WireRecoveryBody } from "@/lib/crypto/wire";
 
+// POST /api/auth/reset-password
+// Completes a recovery (docs/ENCRYPTION_DESIGN.md §4.3). The client has already
+// used the Recovery Key to unwrap the Vault Key and re-wrapped it under a brand
+// new master password. We just persist the new public salt/params, the new
+// verifier, and the newly wrapped Vault Key — all opaque. No plaintext, no OTP.
 export async function POST(req: NextRequest) {
-    const {email, newPassword} = await req.json();
+  try {
+    const body = (await req.json()) as Partial<WireRecoveryBody>;
+    const { email, salt, kdfParams, authHash, wrappedVaultKey } = body;
 
-    if (!email) {
-        return NextResponse.json({ error: "Missing Email" }, { status: 400 });
+    if (!email || !salt || !kdfParams || !authHash || !wrappedVaultKey) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const existingUser = await prisma.user.findUnique({
-        where: { email: email},
-    });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (!existingUser) {
-        // dont tell them to that the email is not correct because of security
-        console.log("User does not exist")
-        return NextResponse.json({ error: "User does not exist" }, { status: 400 });
+      // Don't disclose whether the account exists.
+      return NextResponse.json({ error: "Recovery failed" }, { status: 400 });
     }
 
-    const masterHash = await bcrypt.hash(newPassword, 10)
+    const vault = decodeBundle(wrappedVaultKey);
 
-    // update the user's password
-    try {
-        await prisma.user.update({
-            where: { email: email },
-            data: { masterHash: masterHash }
-        })
-        return NextResponse.json({ message: "Password reset successfully!" }, { status: 200 })
-    } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: "Failed to reset password" }, { status: 500 })
-    }
+    await prisma.user.update({
+      where: { email },
+      data: {
+        salt: Buffer.from(salt, "base64"),
+        kdfParams,
+        authHash: await hashVerifier(authHash),
+        wrappedVaultKey: vault.data,
+        wrappedVaultKeyIv: vault.iv,
+        wrappedVaultKeyTag: vault.tag,
+      },
+    });
 
-    return NextResponse.json({ message: "Password reset link sent to your email!" }, { status: 200 });
+    return NextResponse.json({ message: "Password reset successfully!" }, { status: 200 });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return NextResponse.json({ error: "Failed to reset password" }, { status: 500 });
+  }
 }

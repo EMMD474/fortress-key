@@ -4,12 +4,13 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Spinner from "@/components/ui/Spinner";
 import FormContainer from "@/components/auth/FormContainer";
-import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { registerAccount } from "@/lib/crypto/clientAuth";
 import { ArrowLeft, Mail, User, Lock } from "lucide-react";
 import Button from "@/components/ui/Button";
+import RecoveryKeyDisplay from "@/components/auth/RecoveryKeyDisplay";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 
 const RegisterPage = () => {
@@ -32,6 +33,9 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [signEmail, setSignEmail] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  // Shown once after signup; the account is unusable until the user confirms
+  // they saved it (docs/ENCRYPTION_DESIGN.md §4.1).
+  const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
   const router = useRouter();
 
   // Handle Google Sign In
@@ -130,16 +134,19 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-      await api.post("/api/auth/register", {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        userName: formData.userName,
-        email: formData.email,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-      });
-      toast.success("Account created Successfully!, Login to continue.");
+      // Generates the salt, Vault Key, and Recovery Key, derives the verifier,
+      // and sends only wrapped key material. The master password and Recovery
+      // Key never reach the server (docs/ENCRYPTION_DESIGN.md §4.1).
+      const { recoveryKey: key } = await registerAccount(
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName || null,
+          userName: formData.userName,
+          email: formData.email,
+        },
+        formData.password,
+      );
+      toast.success("Account created — save your recovery key.");
       setFormData({
         firstName: "",
         lastName: "",
@@ -148,14 +155,27 @@ const RegisterPage = () => {
         password: "",
         confirmPassword: "",
       });
-      router.push("/auth/login");
+      setRecoveryKey(key);
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error("Registration failed. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Registration failed.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (recoveryKey) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-center pt-15">
+        <FormContainer>
+          <RecoveryKeyDisplay
+            recoveryKey={recoveryKey}
+            onConfirmed={() => router.push("/auth/login")}
+          />
+        </FormContainer>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen flex flex-col items-center justify-center pt-15">
