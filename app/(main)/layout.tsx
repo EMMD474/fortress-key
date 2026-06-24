@@ -25,9 +25,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         {isOpen && (
           <motion.div
             key="mobile-sidenav"
-            initial={{ x: -80, opacity: 0 }}
+            initial={{ x: -64, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -80, opacity: 0 }}
+            exit={{ x: -64, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
           >
@@ -39,9 +39,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
             {/* Actual sidenav content */}
             <motion.div
-              initial={{ x: -260 }}
+              initial={{ x: -224 }}
               animate={{ x: 0 }}
-              exit={{ x: -260 }}
+              exit={{ x: -224 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
               className={`relative ${isCollapsed ? "w-20" : "w-60"} h-full bg-gray-900`}
             >
@@ -62,17 +62,17 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </main>
       </div>
 
-      {/* Modal */}
+      {/* Credentials Modal */}
       <AnimatePresence>
         {modalOpen && (
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-6"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 sm:p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="relative bg-gray-900 p-4 sm:p-6 rounded-md shadow-lg max-w-md w-full"
+              className="relative bg-gray-900 p-4 sm:p-6 lg:p-8 rounded-lg sm:rounded-xl shadow-lg max-w-xs sm:max-w-md lg:max-w-lg w-full"
               initial={{ y: 60, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 60, opacity: 0 }}
@@ -83,7 +83,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 onClick={toggleModal}
                 className="absolute top-2 right-2 text-white hover:text-gray-300"
               >
-                <X className="w-6 h-6 cursor-pointer hover:text-red-500 transition ease-out duration-200" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6 cursor-pointer hover:text-red-500 transition ease-out duration-200" />
               </button>
               <CredentialsForm onClose={toggleModal} />
             </motion.div>

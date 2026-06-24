@@ -178,9 +178,8 @@ const Profile = () => {
                         value={formData[field as keyof typeof formData]}
                         onChange={handleInputChange}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 transition"
-                        placeholder={`Enter your ${
-                          field === "firstName" ? "first" : "last"
-                        } name`}
+                        placeholder={`Enter your ${field === "firstName" ? "first" : "last"
+                          } name`}
                         required
                       />
                     </div>
@@ -298,11 +297,10 @@ const Profile = () => {
             {/* Message */}
             {message && (
               <div
-                className={`p-3 rounded-lg text-sm ${
-                  message.includes("successfully")
+                className={`p-3 rounded-lg text-sm ${message.includes("successfully")
                     ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
                     : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
-                }`}
+                  }`}
               >
                 {message}
               </div>

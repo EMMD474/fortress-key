@@ -220,13 +220,12 @@ const Settings = () => {
               <div className="mt-3">
                 <div className="h-2 bg-gray-200 dark:bg-gray-800 rounded">
                   <div
-                    className={`h-2 rounded ${
-                      passwordStrength >= 4
+                    className={`h-2 rounded ${passwordStrength >= 4
                         ? "bg-green-500 w-5/6"
                         : passwordStrength >= 2
-                        ? "bg-yellow-500 w-1/2"
-                        : "bg-red-500 w-1/3"
-                    }`}
+                          ? "bg-yellow-500 w-1/2"
+                          : "bg-red-500 w-1/3"
+                      }`}
                   />
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Strength: {strengthLabel}</p>
