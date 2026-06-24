@@ -1,14 +1,17 @@
 # Fortress Key
 
-Fortress Key is a full-stack password vault / manager. Credentials are encrypted server-side with **AES-256-GCM** (PBKDF2 key derivation, 100,000 iterations, per-user salt, random IV per credential) and stored in PostgreSQL.
+Fortress Key is a full-stack, **end-to-end encrypted** password vault / manager. Credentials are encrypted and decrypted entirely in the browser (**zero-knowledge**): the server only ever stores opaque ciphertext and never sees your master password or any plaintext. Built on Next.js + PostgreSQL.
+
+> **🔐 Architecture status:** The zero-knowledge model described below is the committed design and is being implemented now (Argon2id + AES-256-GCM, client-side). See [`docs/ENCRYPTION_DESIGN.md`](./docs/ENCRYPTION_DESIGN.md) for the full spec. Earlier server-side encryption notes in `VAULT_README.md` are **superseded**.
 
 ## Features
 
+- **Zero-knowledge encryption** — credentials are encrypted/decrypted in your browser; the server never sees plaintext or your master password
 - **Encrypted vault** — store, search, filter, and organize login credentials
 - **Password generator** — create strong passwords with configurable rules
 - **Security audit** — review credential health and strength
 - **Categories** — system defaults (Social Media, Banking, Work, Personal) plus custom categories
-- **Auth & account** — register, login, profile management, and password reset via email OTP
+- **Account recovery** — a recovery key issued at signup restores access if the master password is forgotten
 - **Profile pictures** — image upload via Cloudinary
 
 ## Tech Stack
@@ -20,6 +23,17 @@ Fortress Key is a full-stack password vault / manager. Credentials are encrypted
 - Framer Motion (animations)
 - Resend + React Email (transactional email)
 - Cloudinary (image uploads)
+
+## Security Model (Zero-Knowledge)
+
+All credential encryption happens **client-side**. The server is a secure blob store — it cannot read any password, even in memory.
+
+- **Key derivation:** `Argon2id` (memory-hard) turns the master password + a per-user salt into a **Master Key**, which never leaves the browser.
+- **Key hierarchy:** a random **Vault Key** actually encrypts credentials (`AES-256-GCM`, fresh IV + auth tag each). The server stores two *wrapped* (encrypted) copies of the Vault Key — one under the Master Key, one under the Recovery Key.
+- **Authentication:** the server verifies a derived `authHash` (re-hashed again server-side), never the master password.
+- **Recovery:** a one-time **recovery key** shown at signup can unwrap the Vault Key to set a new master password. Lose both the master password **and** the recovery key and the data is unrecoverable by design — there is no server-side backdoor.
+
+Diagrams: [`docs/ENCRYPTION_FLOWS.html`](./docs/ENCRYPTION_FLOWS.html) · full spec: [`docs/ENCRYPTION_DESIGN.md`](./docs/ENCRYPTION_DESIGN.md).
 
 ## Prerequisites
 
@@ -41,9 +55,8 @@ Fortress Key is a full-stack password vault / manager. Credentials are encrypted
    DATABASE_URL="postgresql://fortressuser:fortresspass@localhost:5432/fortressdb?schema=public"
    NEXTAUTH_SECRET="replace-with-a-secure-random-string"
    NEXTAUTH_URL="http://localhost:3000"
-   ENCRYPTION_KEY="replace-with-a-secure-random-string"
 
-   # Optional — email (password reset) and image uploads
+   # Optional — email and image uploads
    RESEND_API_KEY="your-resend-api-key"
    EMAIL_FROM="noreply@example.com"
    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
@@ -51,7 +64,7 @@ Fortress Key is a full-stack password vault / manager. Credentials are encrypted
    NODE_ENV="development"
    ```
 
-   > `ENCRYPTION_KEY` is the master secret used to derive per-user encryption keys for the vault. Keep it stable and secret — rotating it makes existing credentials undecryptable.
+   > Under the zero-knowledge model the server holds **no** credential encryption key — keys are derived in the browser from the user's master password, so there is no `ENCRYPTION_KEY` secret to manage. `NEXTAUTH_SECRET` only signs session tokens; it cannot decrypt any vault data.
 
 3. Start PostgreSQL:
 
@@ -118,5 +131,10 @@ Models: `User`, `Credential`, `Category`, `UserOTP`. See `prisma/schema.prisma`.
 
 ## Documentation
 
-- Vault encryption architecture and API endpoints: [`VAULT_README.md`](./VAULT_README.md)
+- Encryption design (zero-knowledge spec): [`docs/ENCRYPTION_DESIGN.md`](./docs/ENCRYPTION_DESIGN.md)
+- Encryption flow diagrams: [`docs/ENCRYPTION_FLOWS.html`](./docs/ENCRYPTION_FLOWS.html)
+- System architecture overview: [`ARCHITECTURE.html`](./ARCHITECTURE.html)
 - Claude Code guidance: [`CLAUDE.md`](./CLAUDE.md)
+- _Superseded:_ [`VAULT_README.md`](./VAULT_README.md) — original server-side encryption notes, kept for history
+
+> **Note:** account recovery uses the recovery-key flow above, which replaces the older email-OTP password reset. The `UserOTP` model will be removed or repurposed during implementation.
