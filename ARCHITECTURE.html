@@ -87,6 +87,16 @@
     background: var(--panel); border: 1px solid var(--border);
     border-radius: 14px; padding: 22px 24px; margin: 18px 0;
   }
+  figure.diagram {
+    background: #f8fafc; border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; margin: 18px 0; text-align: center;
+  }
+  figure.diagram img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  figure.diagram figcaption {
+    margin-top: 12px; color: #475569; font-size: 13px;
+    font-family: var(--mono);
+  }
+  figure.diagram figcaption b { color: #1e293b; }
 
   /* Layered architecture diagram */
   .layers { display: grid; gap: 14px; }
@@ -209,6 +219,10 @@
   <section id="overview">
     <h2><span class="num">1</span> System Overview</h2>
     <p class="lead">A single Next.js application serving both the UI and the API, backed by PostgreSQL.</p>
+    <figure class="diagram">
+      <img src="diagrams/system-architecture.svg" alt="System architecture: browser (lib/crypto) → middleware → Next.js server → PostgreSQL" />
+      <figcaption><b>Target zero-knowledge architecture.</b> Encryption moves into the browser (<code>lib/crypto</code>); the server stores only opaque ciphertext. See <code>docs/ENCRYPTION_DESIGN.md</code>.</figcaption>
+    </figure>
     <div class="card">
       <div class="layers">
         <div class="layer">

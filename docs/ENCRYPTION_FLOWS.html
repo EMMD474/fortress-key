@@ -34,6 +34,10 @@
   .lead { color:var(--muted); margin:4px 0 22px; }
   code { font-family:var(--mono); font-size:.86em; background:#0c1424; border:1px solid var(--border); padding:2px 6px; border-radius:5px; color:#cbd5e1; }
   .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px 24px; margin:18px 0; }
+  figure.diagram { background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:18px; margin:18px 0; text-align:center; }
+  figure.diagram img { max-width:100%; height:auto; display:block; margin:0 auto; }
+  figure.diagram figcaption { margin-top:12px; color:#475569; font-size:13px; font-family:var(--mono); }
+  figure.diagram figcaption b { color:#1e293b; }
 
   /* key hierarchy diagram */
   .hier { display:grid; grid-template-columns:1fr; gap:0; }
@@ -106,6 +110,10 @@
   <section id="hierarchy">
     <h2><span class="num">1</span> Key Hierarchy</h2>
     <p class="lead">Credentials are <em>not</em> encrypted with the master password. A random <b>Vault Key</b> sits in the middle; the server stores wrapped (encrypted) copies of it.</p>
+    <figure class="diagram">
+      <img src="../diagrams/key-hierarchy.svg" alt="Key hierarchy: master password and recovery key both unwrap the vault key, which encrypts credentials" />
+      <figcaption><b>Rendered key hierarchy.</b> Both the Master Key and Recovery Key unwrap the same Vault Key.</figcaption>
+    </figure>
     <div class="card">
       <div class="hier">
         <div class="krow">
@@ -146,6 +154,7 @@
   <section id="signup">
     <h2><span class="num">2</span> Signup Flow</h2>
     <p class="lead">Everything cryptographic happens in the browser. The server receives only random salts, a verifier, and encrypted blobs.</p>
+    <div class="note"><span class="tag info">Diagram pending</span> A rendered Mermaid version of this sequence isn't exported yet — the swimlane below is the source of truth. Drop a <code>diagrams/signup-flow.svg</code> in and it can be embedded here.</div>
     <div class="card" style="padding:0; overflow:hidden;">
       <div class="lanes">
         <div class="lane-head client">Browser</div>
@@ -188,6 +197,7 @@ wrappedRecoveryKey = enc(vaultKey, recoveryKey)</span></div>
   <section id="unlock">
     <h2><span class="num">3</span> Unlock Flow (Login + Decrypt)</h2>
     <p class="lead">Login proves identity with a verifier; decryption happens locally with the unwrapped Vault Key.</p>
+    <div class="note"><span class="tag info">Diagram pending</span> A rendered Mermaid version of this sequence isn't exported yet — the swimlane below is the source of truth. Drop a <code>diagrams/unlock-flow.svg</code> in and it can be embedded here.</div>
     <div class="card" style="padding:0; overflow:hidden;">
       <div class="lanes">
         <div class="lane-head client">Browser</div>
@@ -223,6 +233,10 @@ authHash  = HKDF(masterKey, "auth")</span></div>
   <section id="recovery">
     <h2><span class="num">4</span> Recovery Flow (Forgot Master Password)</h2>
     <p class="lead">The saved Recovery Key unwraps the same Vault Key, so a new master password can be set with zero data loss — and the server still never sees plaintext.</p>
+    <figure class="diagram">
+      <img src="../diagrams/recovery-flow.svg" alt="Recovery sequence: recovery key unwraps vault key, user sets new master password, server stores new wrapped key" />
+      <figcaption><b>Rendered recovery sequence.</b> Data stays intact; the server only swaps the verifier and re-wrapped key.</figcaption>
+    </figure>
     <div class="card" style="padding:0; overflow:hidden;">
       <div class="lanes">
         <div class="lane-head client">Browser</div>
@@ -252,6 +266,10 @@ authHash  = HKDF(masterKey, "auth")</span></div>
   <section id="visibility">
     <h2><span class="num">5</span> What the Server Can &amp; Cannot See</h2>
     <p class="lead">The credentials API becomes a dumb, secure blob store. There is no plaintext on the server for a breach to leak.</p>
+    <figure class="diagram">
+      <img src="../diagrams/data-model.svg" alt="Entity-relationship diagram of the target schema with wrapped keys, authHash, salt, and GCM tag" />
+      <figcaption><b>Target data model.</b> Everything sensitive is stored as ciphertext or a re-hashed verifier; the new fields are <code>salt</code>, <code>wrappedVaultKey</code>, <code>wrappedRecoveryKey</code>, <code>authHash</code>, and the GCM <code>tag</code>.</figcaption>
+    </figure>
     <table>
       <tr><th>Value</th><th>On the server?</th><th>Form</th></tr>
       <tr><td>Email, profile, category names</td><td class="yes">✔ Yes</td><td>plaintext (non-secret)</td></tr>
