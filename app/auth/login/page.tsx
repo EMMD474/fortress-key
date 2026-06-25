@@ -6,6 +6,7 @@ import Spinner from "@/components/ui/Spinner";
 import FormContainer from "@/components/auth/FormContainer";
 import { toast } from "sonner";
 import { signIn, useSession } from "next-auth/react";
+import { loginAndUnlock } from "@/lib/crypto/clientAuth";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -67,21 +68,15 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await signIn("credentials", {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      }).then((res) => {
-        if (res?.error) {
-          toast.error("Invalid email or password");
-        } else {
-          toast.success("Login successful!");
-          router.push("/dashboard");
-        }
-      });
+      // Derives the auth verifier in the browser, signs in, then downloads and
+      // unwraps the Vault Key into memory. The master password never leaves the
+      // client (docs/ENCRYPTION_DESIGN.md §4.2).
+      await loginAndUnlock(formData.email, formData.password);
+      toast.success("Login successful!");
+      router.push("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please check your credentials.");
+      toast.error(error instanceof Error ? error.message : "Login failed.");
     } finally {
       setIsLoading(false);
     }

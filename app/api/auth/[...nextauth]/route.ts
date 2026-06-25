@@ -1,30 +1,32 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prismaConnect";
-import bcrypt from "bcryptjs";
+import { verifyVerifier } from "@/lib/server/verifier";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
+        // The client sends a derived auth verifier, never the master password
+        // (docs/ENCRYPTION_DESIGN.md §4.2). The server can't derive the
+        // encryption key from it, so login leaks nothing about the vault.
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        authHash: { label: "Auth Verifier", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Please enter both email and password");
+        if (!credentials?.email || !credentials?.authHash) {
+          throw new Error("Missing credentials");
         }
 
-        // find user in DB
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
-        if (!user) throw new Error("User not found");
+        if (!user) throw new Error("Invalid email or password");
 
-        // check password
-        const isValid = await bcrypt.compare(credentials.password, user.masterHash);
-        if (!isValid) throw new Error("Invalid password");
+        // Verify the client's auth verifier against the stored hash.
+        const isValid = await verifyVerifier(credentials.authHash, user.authHash);
+        if (!isValid) throw new Error("Invalid email or password");
 
         // return the user object for the session
         return {

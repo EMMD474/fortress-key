@@ -1,55 +1,72 @@
-import prisma from "@/lib/prismaConnect"
-import bcrypt from "bcryptjs";
+import prisma from "@/lib/prismaConnect";
 import { NextRequest, NextResponse } from "next/server";
-// import { sendEmail } from "@/lib/email";
-import WelcomeEmail from "@/emails/WelcomeEmail";
+import { hashVerifier } from "@/lib/server/verifier";
+import { decodeBundle } from "@/lib/server/wire";
+import type { WireSignupBody } from "@/lib/crypto/wire";
 
+// POST /api/auth/register
+// Receives only key material produced in the browser (docs/ENCRYPTION_DESIGN.md
+// §4.1). The master password, Vault Key, and Recovery Key never reach the
+// server — we store the public salt/params, a re-hashed auth verifier, and two
+// wrapped copies of the Vault Key as opaque blobs.
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, userName, email, password } = await req.json();
-  
-    if (!email || !password) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    const body = (await req.json()) as Partial<WireSignupBody>;
+    const {
+      firstName,
+      lastName,
+      userName,
+      email,
+      salt,
+      kdfParams,
+      authHash,
+      wrappedVaultKey,
+      wrappedRecoveryKey,
+    } = body;
+
+    if (
+      !firstName ||
+      !userName ||
+      !email ||
+      !salt ||
+      !kdfParams ||
+      !authHash ||
+      !wrappedVaultKey ||
+      !wrappedRecoveryKey
+    ) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-  
-    const existingUser = await prisma.user.findUnique({
-      where: { email: email},
-    });
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
-  
-    const hashedPassword = await bcrypt.hash(password, 10);
-  
+
+    const vault = decodeBundle(wrappedVaultKey);
+    const recovery = decodeBundle(wrappedRecoveryKey);
+
     await prisma.user.create({
-      data: { 
+      data: {
         firstName,
         lastName: lastName || null,
         userName,
-        email, 
-        masterHash: hashedPassword }
+        email,
+        salt: Buffer.from(salt, "base64"),
+        kdfParams,
+        // Re-hash the high-entropy verifier so a DB leak can't be used to log in.
+        authHash: await hashVerifier(authHash),
+        wrappedVaultKey: vault.data,
+        wrappedVaultKeyIv: vault.iv,
+        wrappedVaultKeyTag: vault.tag,
+        wrappedRecoveryKey: recovery.data,
+        wrappedRecoveryKeyIv: recovery.iv,
+        wrappedRecoveryKeyTag: recovery.tag,
+      },
     });
-    
-    // Send welcome email
-    // const emailResult = await sendWelcomeEmail(email, name || email);
-    // if (!emailResult.ok) {
-    //   console.error("Failed to send welcome email:", emailResult.error);
-      
-    // }
-    
-    return NextResponse.json({ message: "User created" }, { status: 201 });
 
-  } catch(error) {
+    return NextResponse.json({ message: "User created" }, { status: 201 });
+  } catch (error) {
     console.error("Error creating user:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
-// const sendWelcomeEmail = async (email: string, username: string) => {
-//   return await sendEmail({
-//     to: email,
-//     subject: "Welcome to Fortress Key",
-//     react: WelcomeEmail({ username }),
-//     text: `Hi ${username}, Welcome to Fortress Key! Thanks for signing up and taking your first step in securing your passwords.`,
-//   });
-// }

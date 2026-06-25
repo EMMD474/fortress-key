@@ -11,14 +11,30 @@ datasource db {
 }
 
 model User {
-  id             String        @id @default(uuid())
-  firstName      String
-  lastName       String?
-  userName       String
-  email          String        @unique
-  masterHash     String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now())
+  id        String  @id @default(uuid())
+  firstName String
+  lastName  String?
+  userName  String
+  email     String  @unique
+
+  // --- Zero-knowledge E2E key hierarchy (docs/ENCRYPTION_DESIGN.md §3) ---
+  // Public, non-secret KDF inputs.
+  salt                  Bytes // per-user random; Argon2id input
+  kdfParams             Json // Argon2id memory/time/parallelism + version
+  // Auth verifier. Replaces the old `masterHash`. Server stores argon2(authHash);
+  // the master password itself never reaches the server.
+  authHash              String
+  // Vault Key wrapped under the Master Key (derived from the master password).
+  wrappedVaultKey       Bytes
+  wrappedVaultKeyIv     Bytes
+  wrappedVaultKeyTag    Bytes
+  // Vault Key wrapped under the Recovery Key (shown once at signup).
+  wrappedRecoveryKey    Bytes
+  wrappedRecoveryKeyIv  Bytes
+  wrappedRecoveryKeyTag Bytes
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now())
   credentials    Credential[]
   categories     Category[]
   otps           UserOTP[]
@@ -30,21 +46,25 @@ model Credential {
   label         String
   encryptedData Bytes
   iv            Bytes
+  tag           Bytes // AES-256-GCM auth tag; required to verify integrity on decrypt
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now())
   userId        String
   user          User      @relation(fields: [userId], references: [id])
   categoryId    Int?
   category      Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([userId])
+  @@index([categoryId])
 }
 
 model Category {
-  id        Int          @id @default(autoincrement())
-  name      String        @unique
-  isDefault Boolean       @default(false)   // distinguishes system categories
-  userId    String?                           // null = system-wide default
-  user      User?         @relation(fields: [userId], references: [id])
-  credentials Credential[]                   // all credentials under this category
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  isDefault   Boolean      @default(false) // distinguishes system categories
+  userId      String? // null = system-wide default
+  user        User?        @relation(fields: [userId], references: [id])
+  credentials Credential[] // all credentials under this category
 }
 
 model UserOTP {
