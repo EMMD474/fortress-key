@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Fortress Key is a full-stack password vault/manager built with Next.js 15 (App Router), React 19, TypeScript 5, and PostgreSQL 16 via Prisma ORM. Credentials are encrypted with AES-256-GCM using PBKDF2 key derivation (100,000 iterations, per-user salt, random IV per credential).
+Fortress Key is a full-stack, **zero-knowledge (end-to-end encrypted)** password vault/manager built with Next.js 15 (App Router), React 19, TypeScript 5, and PostgreSQL 16 via Prisma ORM. All encryption and decryption happen **in the user's browser**; the server only ever stores and serves opaque ciphertext. See `docs/ENCRYPTION_DESIGN.md` for the full crypto architecture (this supersedes the older server-side notes in `VAULT_README.md`).
 
 ## Commands
 
@@ -13,10 +13,13 @@ pnpm dev              # Start dev server (Turbopack)
 pnpm build            # Production build
 pnpm start            # Start production server
 pnpm lint             # ESLint
+pnpm test             # Run crypto/unit tests (vitest run)
+pnpm test:watch       # Watch mode (vitest)
 pnpm seed             # Seed database (tsx prisma/seed.ts)
 
 # Database
 npx prisma migrate dev       # Run migrations
+npx prisma migrate deploy    # Apply migrations (CI/prod)
 npx prisma studio            # Open Prisma Studio GUI
 npx prisma generate          # Regenerate Prisma client
 
@@ -25,36 +28,51 @@ docker compose up -d         # Start PostgreSQL container
 docker compose down          # Stop container
 ```
 
+Migrations live in **`db/migrations/`** (configured via `prisma.config.ts`, not the default `prisma/migrations/`). `prisma.config.ts` also loads `.env` itself via `process.loadEnvFile()`, since Prisma stops auto-loading env vars once a config file is present.
+
 ## Architecture
 
 ### Routing
 
-- **`app/(main)/`** — Protected route group (dashboard, vault, password-generator, profile, settings, security-audit, image). Auth enforced by `middleware.ts` using NextAuth's `withAuth`.
-- **`app/auth/`** — Public auth pages (login, register, forgot-password).
-- **`app/api/`** — API routes for auth, credentials CRUD, categories, password generation, and email sending.
+- **`app/(main)/`** — Protected route group (dashboard, vault, password-generator, profile, settings, security-audit). Auth enforced by `middleware.ts` using NextAuth's `withAuth`.
+- **`app/auth/`** — Public auth pages (login, register, forgot-password / recovery).
+- **`app/api/`** — API routes: auth (`register`, `salt`, `vault-key`, `recovery-material`, `reset-password`, `update-profile`, `[...nextauth]`), credentials CRUD, categories, password generation, and email (`send`).
 
-### Authentication
+### Authentication & key flows
 
-NextAuth with credentials provider (email/password), JWT strategy, 15-minute session expiry. Master password hashed with bcryptjs. Session types are augmented in `types/next-auth.d.ts` to include `id`, `firstName`, `lastName`, `userName`.
+NextAuth with credentials provider, JWT strategy, 15-minute session expiry. The master password **never reaches the server**. Instead the browser derives an auth verifier (`authHash = HKDF(masterKey, "auth")`) and sends only that; the server hashes it again with bcrypt (`lib/server/verifier.ts`) before storing in `User.authHash`. Session types are augmented in `types/next-auth.d.ts` to include `id`, `firstName`, `lastName`, `userName`.
 
-### Encryption (Vault)
+Login/unlock fetches the user's public `salt` + `kdfParams`, re-derives the Master Key client-side, verifies via NextAuth, then unwraps the Vault Key (held in browser memory only) to decrypt credentials. Recovery uses a one-time Recovery Key shown at signup.
 
-Credentials API routes (`app/api/credentials/`) handle encryption/decryption server-side:
-- AES-256-GCM with PBKDF2 key derivation from `ENCRYPTION_KEY` env var + user-specific salt
-- Each credential gets a random IV; encrypted data stored as `Bytes` in Prisma
-- See `VAULT_README.md` for full encryption architecture and API endpoint documentation
+### Encryption (zero-knowledge, client-side)
+
+All crypto lives in **`lib/crypto/`** and runs in the browser. The server is a dumb, secure blob store — it has no `deriveKey`/`encrypt`/`decrypt` and never sees plaintext or the master password.
+
+Key hierarchy (see `docs/ENCRYPTION_DESIGN.md` §2):
+- **Argon2id** (WASM via `hash-wasm`) derives the Master Key from the master password + per-user `salt`; params stored per-user in `kdfParams`.
+- A random 256-bit **Vault Key** encrypts every credential. The server stores it *wrapped* (encrypted) twice: once under the Master Key, once under the Recovery Key — so changing the master password or recovering never re-encrypts the whole vault.
+- **AES-256-GCM** for encryption and key wrapping (random 96-bit IV, 128-bit auth tag stored and verified).
+- **HKDF-SHA256** splits the auth verifier from the Master Key (key-separation rule).
+
+`lib/crypto/index.ts` re-exports the isomorphic primitives; `clientAuth` and `vaultSession` are browser-only and imported directly.
 
 ### Key Directories
 
-- **`lib/`** — Shared utilities: `api.ts` (typed fetch wrapper), `authenticate.ts` (server-side session check), `prismaConnect.ts` (singleton client), `credentialsApi.ts` (credentials API client class), `generatePassword.ts`
-- **`components/`** — UI components, navigation (NavBar, SideNav, BottomNavBar), auth forms, modals, AddCredentials form
+- **`lib/`** — `api.ts` (typed fetch wrapper), `authenticate.ts` (server-side session check), `prismaConnect.ts` (singleton client), `credentialsApi.ts` (credentials API client class), `generatePassword.ts`, `email.ts`, `generateOTP.ts`
+- **`lib/crypto/`** — browser crypto module: `argon2`, `aesgcm`, `hkdf`, `vault`, `recoveryKey`, `random`, `encoding`, `wire`, `clientAuth`, `vaultSession`, plus `crypto.test.ts` (round-trip + tamper tests)
+- **`lib/server/`** — server helpers: `verifier.ts` (bcrypt auth-verifier hashing), `saltParams.ts`, `session.ts`, `credentialSchemas.ts` (Zod), `wire.ts`
+- **`components/`** — UI components, navigation, auth forms, modals (`AddCredentials`, `RecoveryKeyDisplay`, `ImportExportModal`)
 - **`context/`** — React context providers: SessionProvider wrapper (`provider.tsx`), password modal state, sidebar state
-- **`prisma/`** — Schema, migrations, seed script
+- **`prisma/`** — schema and seed script (migrations live in `db/migrations/`)
 - **`emails/`** — React Email templates (used with Resend)
 
 ### Database Schema (Prisma)
 
-Four models: `User`, `Credential`, `Category`, `UserOTP`. Categories can be system-wide (seeded defaults: Social Media, Banking, Work, Personal) or user-created. OTPs support password reset flow with expiry and used-flag.
+Four models: `User`, `Credential`, `Category`, `UserOTP`.
+- **`User`** carries the zero-knowledge key material: `salt`, `kdfParams` (Json), `authHash` (replaces the old `masterHash`), and two wrapped copies of the Vault Key — `wrappedVaultKey`/`wrappedRecoveryKey` each with their `*Iv` and `*Tag` columns.
+- **`Credential`** stores `encryptedData`, `iv`, and `tag` (GCM auth tag) as `Bytes`; `label` stays plaintext for listing — never put secrets in it. Indexed on `userId` and `categoryId`.
+- **`Category`** — system-wide (seeded defaults: Social Media, Banking, Work, Personal) or user-created.
+- **`UserOTP`** — OTP records with expiry/used-flag (legacy reset-password path; the Recovery Key flow is the primary recovery mechanism).
 
 ### Styling
 
@@ -62,7 +80,9 @@ Tailwind CSS 4 via PostCSS. Dark mode support with CSS variables. Geist font fam
 
 ## Environment Variables
 
-Requires `.env` with: `DATABASE_URL` (PostgreSQL connection string), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `ENCRYPTION_KEY`, and optionally `RESEND_API_KEY`, Cloudinary config.
+`.env` provides `DATABASE_URL` (PostgreSQL connection string), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, and optionally `RESEND_API_KEY` / Cloudinary config. Docker Postgres credentials (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`) are also read from `.env` by `docker-compose.yml`.
+
+> The legacy `ENCRYPTION_KEY` is no longer used — credentials are encrypted client-side, so the server holds no encryption key.
 
 ## Testing Account
 
