@@ -5,11 +5,11 @@ services:
     container_name: fortress-postgres
     restart: always
     environment:
-      POSTGRES_USER: fortressuser
-      POSTGRES_PASSWORD: fortresspass
-      POSTGRES_DB: fortressdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - fortress_data:/var/lib/postgresql/data
 
