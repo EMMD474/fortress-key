@@ -1,5 +1,3 @@
-Loaded Prisma config from prisma.config.ts.
-
 -- AlterTable
 ALTER TABLE "public"."User" DROP COLUMN "masterHash",
 ADD COLUMN     "authHash" TEXT NOT NULL,
