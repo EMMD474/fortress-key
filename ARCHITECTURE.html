@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fortress Key — Architecture Guide</title>
+<style>
+  :root {
+    --bg: #0b1120;
+    --panel: #111a2e;
+    --panel-2: #16223c;
+    --border: #233252;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-2: #60a5fa;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 50% -200px, #15233f 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 96px; }
+
+  /* Header */
+  header.hero {
+    text-align: center;
+    padding: 64px 24px 40px;
+  }
+  .logo {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent-2); font-weight: 600;
+  }
+  .logo .key { font-size: 26px; }
+  h1 { font-size: 44px; margin: 14px 0 8px; letter-spacing: -1px; }
+  .hero p { color: var(--muted); font-size: 18px; max-width: 640px; margin: 0 auto; }
+  .badges { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .badge {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 999px; font-size: 13px; color: var(--muted);
+  }
+  .badge b { color: var(--text); font-weight: 600; }
+
+  /* Nav */
+  nav.toc {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(11,17,32,0.82); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;
+    padding: 12px; margin-bottom: 40px;
+  }
+  nav.toc a {
+    color: var(--muted); text-decoration: none; font-size: 13.5px;
+    padding: 6px 12px; border-radius: 8px; transition: .15s;
+  }
+  nav.toc a:hover { color: var(--text); background: var(--panel-2); }
+
+  section { margin: 56px 0; scroll-margin-top: 64px; }
+  h2 {
+    font-size: 26px; margin: 0 0 6px; display: flex; align-items: center; gap: 12px;
+  }
+  h2 .num {
+    font-size: 14px; color: var(--accent-2); border: 1px solid var(--border);
+    background: var(--panel); border-radius: 8px; width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  h3 { font-size: 18px; margin: 28px 0 10px; color: var(--accent-2); }
+  .lead { color: var(--muted); margin: 4px 0 24px; }
+  p { margin: 12px 0; }
+  code {
+    font-family: var(--mono); font-size: 0.88em;
+    background: #0c1424; border: 1px solid var(--border);
+    padding: 2px 6px; border-radius: 5px; color: #cbd5e1;
+  }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px 24px; margin: 18px 0;
+  }
+  figure.diagram {
+    background: #f8fafc; border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; margin: 18px 0; text-align: center;
+  }
+  figure.diagram img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  figure.diagram figcaption {
+    margin-top: 12px; color: #475569; font-size: 13px;
+    font-family: var(--mono);
+  }
+  figure.diagram figcaption b { color: #1e293b; }
+
+  /* Layered architecture diagram */
+  .layers { display: grid; gap: 14px; }
+  .layer {
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  }
+  .layer .ltitle { font-weight: 700; font-size: 15px; margin-bottom: 12px; display:flex; align-items:center; gap:8px;}
+  .layer .ltitle .dot { width:10px; height:10px; border-radius:50%; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: var(--mono); font-size: 12.5px;
+    background: #0c1424; border: 1px solid var(--border);
+    padding: 6px 11px; border-radius: 8px; color: #d3dcea;
+  }
+  .arrow-down { text-align: center; color: var(--border); font-size: 20px; line-height: 1; }
+
+  /* Flow steps */
+  .flow { counter-reset: step; display: grid; gap: 0; }
+  .step {
+    position: relative; padding: 0 0 22px 56px; counter-increment: step;
+  }
+  .step:not(:last-child)::before {
+    content: ""; position: absolute; left: 17px; top: 30px; bottom: -6px;
+    width: 2px; background: var(--border);
+  }
+  .step::after {
+    content: counter(step); position: absolute; left: 0; top: 0;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .step.enc::after { background: var(--green); color: #06281c; }
+  .step h4 { margin: 4px 0 6px; font-size: 16px; }
+  .step p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .step .mono { font-family: var(--mono); font-size: 12.5px; color: var(--accent-2); }
+
+  /* Pipeline boxes */
+  .pipe { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; margin: 8px 0; }
+  .pbox {
+    flex: 1; min-width: 130px; text-align: center;
+    background: #0c1424; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 10px;
+  }
+  .pbox .t { font-weight: 700; font-size: 14px; }
+  .pbox .s { font-size: 11.5px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+  .pconn { display: flex; align-items: center; color: var(--accent); font-size: 22px; padding: 0 6px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--accent-2); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  td code { white-space: nowrap; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } h1 { font-size: 34px; } }
+
+  .note {
+    border-left: 4px solid var(--accent); background: var(--panel);
+    border-radius: 0 10px 10px 0; padding: 14px 18px; margin: 18px 0;
+  }
+  .note.warn { border-left-color: var(--amber); }
+  .note.danger { border-left-color: var(--red); }
+  .note .tag { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .note.warn .tag { color: var(--amber); }
+  .note.danger .tag { color: var(--red); }
+  .note .tag.info { color: var(--accent-2); }
+
+  pre {
+    background: #0a1120; border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-family: var(--mono);
+    font-size: 13px; line-height: 1.6; color: #cbd5e1;
+  }
+  pre .k { color: #c792ea; } pre .s { color: #c3e88d; } pre .c { color: #5d6b86; } pre .f { color: #82aaff; }
+
+  .schema { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .schema { grid-template-columns: 1fr; } }
+  .entity { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .entity .ehead { background: var(--panel-2); padding: 10px 16px; font-weight: 700; font-family: var(--mono); color: var(--accent-2); border-bottom: 1px solid var(--border); }
+  .entity .erow { display: flex; justify-content: space-between; padding: 7px 16px; font-family: var(--mono); font-size: 12.5px; border-bottom: 1px solid #18233c; }
+  .entity .erow:last-child { border-bottom: none; }
+  .entity .erow .ty { color: var(--muted); }
+  .entity .erow.pk .fn { color: var(--amber); }
+  .entity .erow.fk .fn { color: var(--purple); }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .legend { display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:10px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { width:10px;height:10px;border-radius:2px;display:inline-block;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="logo"><span class="key">🔐</span> Fortress Key</div>
+  <h1>Architecture Guide</h1>
+  <p>How the password vault is built — the request lifecycle, authentication, and the credential encryption design from end to end.</p>
+  <div class="badges">
+    <span class="badge"><b>Next.js 15</b> App Router</span>
+    <span class="badge"><b>React 19</b> · TS 5</span>
+    <span class="badge"><b>Prisma</b> + PostgreSQL 16</span>
+    <span class="badge"><b>NextAuth</b> JWT</span>
+    <span class="badge"><b>AES-256-GCM</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#overview">Overview</a>
+  <a href="#layers">Layers</a>
+  <a href="#auth">Auth Flow</a>
+  <a href="#encryption">Encryption</a>
+  <a href="#crud">Vault CRUD</a>
+  <a href="#schema">Data Model</a>
+  <a href="#dirs">Code Map</a>
+  <a href="#status">Status</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <h2><span class="num">1</span> System Overview</h2>
+    <p class="lead">A single Next.js application serving both the UI and the API, backed by PostgreSQL.</p>
+    <figure class="diagram">
+      <img src="diagrams/system-architecture.svg" alt="System architecture: browser (lib/crypto) → middleware → Next.js server → PostgreSQL" />
+      <figcaption><b>Target zero-knowledge architecture.</b> Encryption moves into the browser (<code>lib/crypto</code>); the server stores only opaque ciphertext. See <code>docs/ENCRYPTION_DESIGN.md</code>.</figcaption>
+    </figure>
+    <div class="card">
+      <div class="layers">
+        <div class="layer">
+          <div class="ltitle"><span class="dot" style="background:var(--accent)"></span>Browser (React 19 Client)</div>
+          <div class="chips">
+            <span class="chip">Vault UI</span><span class="chip">Password Generator</span>
+            <span class="chip">Security Audit</span><span class="chip">Auth Forms</span>
+            <span class="chip">Framer Motion</span><span class="chip">Tailwind 4</span>
+          </div>
+        </div>
+        <div class="arrow-down">▼ &nbsp; HTTPS / fetch</div>
+        <div class="layer">
+          <div class="ltitle"><span class="dot" style="background:var(--amber)"></span>Edge — <code>middleware.ts</code> (NextAuth withAuth)</div>
+          <div class="chips">
+            <span class="chip">Protects all routes except <code>/auth</code>, <code>/api</code>, statics</span>
+            <span class="chip">Redirects unauthenticated → <code>/auth/login</code></span>
+          </div>
+        </div>
+        <div class="arrow-down">▼</div>
+        <div class="layer">
+          <div class="ltitle"><span class="dot" style="background:var(--green)"></span>Next.js Server — App Router</div>
+          <div class="chips">
+            <span class="chip">app/(main)/* &nbsp;protected pages</span>
+            <span class="chip">app/auth/* &nbsp;public pages</span>
+            <span class="chip">app/api/* &nbsp;route handlers</span>
+            <span class="chip">lib/* &nbsp;server utilities</span>
+          </div>
+        </div>
+        <div class="arrow-down">▼ &nbsp; Prisma Client</div>
+        <div class="layer">
+          <div class="ltitle"><span class="dot" style="background:var(--purple)"></span>PostgreSQL 16 (Docker)</div>
+          <div class="chips">
+            <span class="chip">User</span><span class="chip">Credential</span>
+            <span class="chip">Category</span><span class="chip">UserOTP</span>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--accent)"></i>client</span>
+        <span><i style="background:var(--amber)"></i>edge auth</span>
+        <span><i style="background:var(--green)"></i>server</span>
+        <span><i style="background:var(--purple)"></i>database</span>
+      </div>
+    </div>
+    <p>Because Next.js runs UI and API in one process, sensitive operations — session checks, encryption, database access — happen <b>server-side only</b>. The browser never holds the encryption key or talks to PostgreSQL directly.</p>
+  </section>
+
+  <!-- LAYERS -->
+  <section id="layers">
+    <h2><span class="num">2</span> The Two Route Groups</h2>
+    <p class="lead">Routing is split by access level using App Router route groups.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="margin-top:0">🔒 app/(main)/</h3>
+        <p style="margin-top:0">Protected. Every page here requires a valid session; <code>middleware.ts</code> enforces it before the page renders.</p>
+        <div class="chips">
+          <span class="chip">dashboard</span><span class="chip">vault</span>
+          <span class="chip">password-generator</span><span class="chip">security-audit</span>
+          <span class="chip">profile</span><span class="chip">settings</span><span class="chip">image</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">🌐 app/auth/</h3>
+        <p style="margin-top:0">Public. Reachable without a session so users can get in or recover access.</p>
+        <div class="chips">
+          <span class="chip">login</span><span class="chip">register</span>
+          <span class="chip">forgot-password</span>
+        </div>
+      </div>
+    </div>
+    <div class="note">
+      <span class="tag info">Why a group?</span>
+      The <code>(main)</code> parentheses create a logical grouping <em>without</em> adding a URL segment — so <code>app/(main)/vault</code> is served at <code>/vault</code>, while letting a shared layout and the auth boundary wrap every protected page.
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section id="auth">
+    <h2><span class="num">3</span> Authentication Flow</h2>
+    <p class="lead">NextAuth with a credentials provider, JWT sessions, and a short 15-minute expiry.</p>
+
+    <h3>Registration</h3>
+    <div class="card">
+      <div class="flow">
+        <div class="step">
+          <h4>User submits the register form</h4>
+          <p>First/last name, username, email, password sent to <span class="mono">POST /api/auth/register</span>.</p>
+        </div>
+        <div class="step">
+          <h4>Server hashes the master password</h4>
+          <p><code>bcryptjs</code> with a cost factor of 10. The plaintext password is never stored.</p>
+        </div>
+        <div class="step">
+          <h4>User row is created</h4>
+          <p>The bcrypt hash is saved as <span class="mono">masterHash</span>; the account is ready to log in.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Login &amp; session</h3>
+    <div class="card">
+      <div class="flow">
+        <div class="step">
+          <h4>Credentials submitted to NextAuth</h4>
+          <p>The <span class="mono">authorize()</span> callback looks the user up by email.</p>
+        </div>
+        <div class="step">
+          <h4>Password verified</h4>
+          <p><code>bcrypt.compare(password, user.masterHash)</code>. On failure, an error is thrown and no session is issued.</p>
+        </div>
+        <div class="step">
+          <h4>JWT minted</h4>
+          <p>The <span class="mono">jwt</span> callback embeds <code>id</code>, <code>email</code>, <code>firstName</code>, <code>lastName</code>, <code>userName</code> into a signed token — <b>no database session row</b> (<code>strategy: "jwt"</code>).</p>
+        </div>
+        <div class="step">
+          <h4>Session exposed to the app</h4>
+          <p>The <span class="mono">session</span> callback maps token claims onto <code>session.user</code>. Token lifetime: <code>maxAge = 60 × 15</code> = 15 minutes.</p>
+        </div>
+        <div class="step">
+          <h4>Every later request is gated</h4>
+          <p><code>middleware.ts</code> validates the JWT at the edge; API routes re-check via <code>getServerSession()</code> before touching data.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Password reset (OTP)</h3>
+    <p>A one-time code flow backed by the <code>UserOTP</code> model: <span class="mono">forgot-password</span> generates a hashed OTP with an expiry, <span class="mono">verify-otp</span> checks it, and <span class="mono">reset-password</span> sets a new <code>masterHash</code>. Email delivery uses Resend + React Email templates.</p>
+  </section>
+
+  <!-- ENCRYPTION -->
+  <section id="encryption">
+    <h2><span class="num">4</span> Vault Encryption Design</h2>
+    <p class="lead">How a credential is meant to be protected: AES-256-GCM with a key derived per user via PBKDF2.</p>
+
+    <div class="card">
+      <h3 style="margin-top:0">The building blocks</h3>
+      <table>
+        <tr><th>Element</th><th>Choice</th><th>Why it matters</th></tr>
+        <tr><td>Cipher</td><td><code>AES-256-GCM</code></td><td>Authenticated encryption — provides confidentiality <em>and</em> tamper detection via an auth tag.</td></tr>
+        <tr><td>Key derivation</td><td><code>PBKDF2-SHA256</code></td><td>Turns a secret into a 32-byte key; deliberately slow to resist brute force.</td></tr>
+        <tr><td>Iterations</td><td><code>100,000</code></td><td>Raises the cost of each guess in an offline attack.</td></tr>
+        <tr><td>Salt</td><td>Per-user</td><td>Two users with the same input never derive the same key; defeats rainbow tables.</td></tr>
+        <tr><td>IV</td><td>Random, per credential</td><td>Same plaintext encrypts to different ciphertext each time.</td></tr>
+        <tr><td>Auth tag</td><td>Per credential (GCM)</td><td>Verified on decrypt — modified ciphertext is rejected.</td></tr>
+      </table>
+    </div>
+
+    <h3>Key derivation pipeline</h3>
+    <div class="card">
+      <div class="pipe">
+        <div class="pbox"><div class="t">Secret</div><div class="s">ENCRYPTION_KEY<br>+ master pw</div></div>
+        <div class="pconn">+</div>
+        <div class="pbox"><div class="t">Per-user salt</div><div class="s">unique / user</div></div>
+        <div class="pconn">→</div>
+        <div class="pbox"><div class="t">PBKDF2</div><div class="s">SHA-256<br>100k iters</div></div>
+        <div class="pconn">→</div>
+        <div class="pbox" style="border-color:var(--green)"><div class="t">32-byte key</div><div class="s">AES-256</div></div>
+      </div>
+      <p style="margin-bottom:0; color:var(--muted); font-size:14px;">The derived key lives only in server memory for the duration of the request — it is never written to the database or sent to the browser.</p>
+    </div>
+
+    <h3>Encrypting a credential (write path)</h3>
+    <div class="card">
+      <div class="flow">
+        <div class="step enc">
+          <h4>Bundle the secret fields</h4>
+          <p>username, password, website, notes → one JSON string.</p>
+          <p class="mono">{ username, password, website, notes }</p>
+        </div>
+        <div class="step enc">
+          <h4>Derive the key</h4>
+          <p><code>deriveKey(master, salt)</code> → 32-byte AES key.</p>
+        </div>
+        <div class="step enc">
+          <h4>Generate a fresh IV &amp; encrypt</h4>
+          <p>Random IV per credential, then AES-256-GCM produces ciphertext + an authentication tag.</p>
+        </div>
+        <div class="step enc">
+          <h4>Persist bytes only</h4>
+          <p>The row stores <span class="mono">encryptedData</span> and <span class="mono">iv</span> as <code>Bytes</code>. The <code>label</code> stays plaintext for listing/search; everything sensitive is opaque.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Decrypting (read path)</h3>
+    <p>The reverse: load the row, re-derive the key from the master password + the user's salt, feed <code>encryptedData</code>, <code>iv</code>, and the auth tag into AES-256-GCM. If the tag doesn't verify, decryption fails closed and nothing is returned.</p>
+
+    <div class="note danger">
+      <span class="tag">Zero-knowledge intent</span>
+      The design goal is that the server can only decrypt while it holds the master secret in-memory for a request. The database alone — <code>encryptedData</code> + <code>iv</code> — is not enough to recover any password.
+    </div>
+
+    <pre><span class="c">// app/api/credentials/route.ts — the cryptographic core</span>
+<span class="k">const</span> ALGORITHM = <span class="s">'aes-256-gcm'</span>;
+<span class="k">const</span> KEY_LENGTH = <span class="s">32</span>;
+
+<span class="k">function</span> <span class="f">deriveKey</span>(masterPassword, salt) {
+  <span class="k">return</span> crypto.<span class="f">pbkdf2Sync</span>(masterPassword, salt, <span class="s">100000</span>, KEY_LENGTH, <span class="s">'sha256'</span>);
+}
+
+<span class="k">function</span> <span class="f">encryptData</span>(data, key) {
+  <span class="k">const</span> iv = crypto.<span class="f">randomBytes</span>(<span class="s">16</span>);
+  <span class="k">const</span> cipher = crypto.<span class="f">createCipheriv</span>(ALGORITHM, key, iv);
+  <span class="k">const</span> encrypted = Buffer.<span class="f">concat</span>([cipher.<span class="f">update</span>(data, <span class="s">'utf8'</span>), cipher.<span class="f">final</span>()]);
+  <span class="k">return</span> { encrypted, iv, tag: cipher.<span class="f">getAuthTag</span>() };
+}</pre>
+  </section>
+
+  <!-- CRUD -->
+  <section id="crud">
+    <h2><span class="num">5</span> Vault Request Lifecycle</h2>
+    <p class="lead">What happens on a typical call to the credentials API.</p>
+    <div class="card">
+      <div class="flow">
+        <div class="step">
+          <h4>Client calls the API</h4>
+          <p>The <code>CredentialsApi</code> client (in <code>lib/credentialsApi.ts</code>) issues <code>GET/POST/PUT/DELETE</code> to <span class="mono">/api/credentials</span>.</p>
+        </div>
+        <div class="step">
+          <h4>Session check</h4>
+          <p>The route handler calls <code>getServerSession()</code>; no session → <code>401 Unauthorized</code>.</p>
+        </div>
+        <div class="step">
+          <h4>Resolve the user</h4>
+          <p>Look up the user by <code>session.user.email</code>; missing → <code>404</code>. This also scopes the query so users only see <em>their</em> credentials.</p>
+        </div>
+        <div class="step">
+          <h4>Encrypt / decrypt</h4>
+          <p>Write path encrypts before <code>prisma.credential.create</code>; read path decrypts after <code>findMany</code>.</p>
+        </div>
+        <div class="step">
+          <h4>Return JSON</h4>
+          <p>Plaintext fields go back to the client over HTTPS; ciphertext stays in the database.</p>
+        </div>
+      </div>
+    </div>
+    <table>
+      <tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr>
+      <tr><td><code>GET</code></td><td><code>/api/credentials</code></td><td>List the user's credentials (decrypted)</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/credentials</code></td><td>Create &amp; encrypt a credential</td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/credentials/[id]</code></td><td>Fetch one credential</td></tr>
+      <tr><td><code>PUT</code></td><td><code>/api/credentials/[id]</code></td><td>Update &amp; re-encrypt</td></tr>
+      <tr><td><code>DELETE</code></td><td><code>/api/credentials/[id]</code></td><td>Remove a credential</td></tr>
+      <tr><td><code>GET/POST</code></td><td><code>/api/category</code></td><td>List / create categories</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/generate-password</code></td><td>Server-side strong password generation</td></tr>
+    </table>
+  </section>
+
+  <!-- SCHEMA -->
+  <section id="schema">
+    <h2><span class="num">6</span> Data Model</h2>
+    <p class="lead">Four Prisma models. <span style="color:var(--amber)">●</span> primary key &nbsp; <span style="color:var(--purple)">●</span> foreign key.</p>
+    <div class="schema">
+      <div class="entity">
+        <div class="ehead">User</div>
+        <div class="erow pk"><span class="fn">id</span><span class="ty">String · uuid</span></div>
+        <div class="erow"><span class="fn">firstName</span><span class="ty">String</span></div>
+        <div class="erow"><span class="fn">lastName</span><span class="ty">String?</span></div>
+        <div class="erow"><span class="fn">userName</span><span class="ty">String</span></div>
+        <div class="erow"><span class="fn">email</span><span class="ty">String · unique</span></div>
+        <div class="erow"><span class="fn">masterHash</span><span class="ty">String · bcrypt</span></div>
+        <div class="erow"><span class="fn">profilePicture</span><span class="ty">String?</span></div>
+      </div>
+      <div class="entity">
+        <div class="ehead">Credential</div>
+        <div class="erow pk"><span class="fn">id</span><span class="ty">String · uuid</span></div>
+        <div class="erow"><span class="fn">label</span><span class="ty">String · plaintext</span></div>
+        <div class="erow"><span class="fn">encryptedData</span><span class="ty">Bytes 🔒</span></div>
+        <div class="erow"><span class="fn">iv</span><span class="ty">Bytes 🔒</span></div>
+        <div class="erow fk"><span class="fn">userId</span><span class="ty">→ User</span></div>
+        <div class="erow fk"><span class="fn">categoryId</span><span class="ty">→ Category?</span></div>
+      </div>
+      <div class="entity">
+        <div class="ehead">Category</div>
+        <div class="erow pk"><span class="fn">id</span><span class="ty">Int · autoinc</span></div>
+        <div class="erow"><span class="fn">name</span><span class="ty">String · unique</span></div>
+        <div class="erow"><span class="fn">isDefault</span><span class="ty">Boolean</span></div>
+        <div class="erow fk"><span class="fn">userId</span><span class="ty">→ User? (null = system)</span></div>
+      </div>
+      <div class="entity">
+        <div class="ehead">UserOTP</div>
+        <div class="erow pk"><span class="fn">id</span><span class="ty">String · uuid</span></div>
+        <div class="erow"><span class="fn">otpHash</span><span class="ty">String</span></div>
+        <div class="erow"><span class="fn">expiresAt</span><span class="ty">DateTime</span></div>
+        <div class="erow"><span class="fn">used</span><span class="ty">Boolean</span></div>
+        <div class="erow fk"><span class="fn">userId</span><span class="ty">→ User · cascade</span></div>
+      </div>
+    </div>
+    <div class="note">
+      <span class="tag info">Relationships</span>
+      One <b>User</b> has many <b>Credentials</b>, <b>Categories</b>, and <b>OTPs</b>. A <b>Category</b> is either system-wide (<code>userId = null</code>, seeded: Social Media, Banking, Work, Personal) or user-owned. Deleting a user cascades their OTPs.
+    </div>
+  </section>
+
+  <!-- DIRS -->
+  <section id="dirs">
+    <h2><span class="num">7</span> Code Map</h2>
+    <p class="lead">Where the important pieces live.</p>
+    <table>
+      <tr><th>Path</th><th>Responsibility</th></tr>
+      <tr><td><code>middleware.ts</code></td><td>Edge auth boundary (NextAuth <code>withAuth</code>)</td></tr>
+      <tr><td><code>app/api/auth/[...nextauth]</code></td><td>NextAuth config: provider, JWT &amp; session callbacks</td></tr>
+      <tr><td><code>app/api/credentials/</code></td><td>Vault CRUD + the encrypt/decrypt logic</td></tr>
+      <tr><td><code>lib/credentialsApi.ts</code></td><td>Typed client-side wrapper for the credentials API</td></tr>
+      <tr><td><code>lib/authenticate.ts</code></td><td>Reusable server-side session guard</td></tr>
+      <tr><td><code>lib/prismaConnect.ts</code></td><td>Singleton Prisma client</td></tr>
+      <tr><td><code>lib/generatePassword.ts</code></td><td>Password generation rules</td></tr>
+      <tr><td><code>lib/cloudinary.ts</code> · <code>lib/email.ts</code></td><td>Image upload &amp; transactional email helpers</td></tr>
+      <tr><td><code>prisma/schema.prisma</code></td><td>Data model &amp; migrations source of truth</td></tr>
+      <tr><td><code>emails/</code></td><td>React Email templates (Resend)</td></tr>
+    </table>
+  </section>
+
+  <!-- STATUS -->
+  <section id="status">
+    <h2><span class="num">8</span> Implementation Status — Read This</h2>
+    <p class="lead">The design above is the target. The current code is partly scaffolded.</p>
+    <div class="note danger">
+      <span class="tag">Encryption is not yet wired up</span>
+      In <code>app/api/credentials/route.ts</code> the real <code>deriveKey</code> / <code>encryptData</code> / <code>decryptData</code> functions are <b>defined but not called</b>. As shipped:
+      <ul style="margin:10px 0 0;">
+        <li><code>POST</code> stores the credential JSON as <b>plaintext bytes</b> (<code>Buffer.from(credentialData)</code>) — no encryption is applied.</li>
+        <li><code>GET</code> returns hard-coded placeholders (<code>'encrypted_username'</code>, …) instead of decrypting real data.</li>
+        <li>The master password is accepted in the request body but <b>not verified or used</b> to derive a key.</li>
+      </ul>
+    </div>
+    <div class="note warn">
+      <span class="tag">Also note</span>
+      The helper uses the deprecated <code>crypto.createCipher</code> (key-only, ignores the IV). To match this guide it should move to <code>crypto.createCipheriv(algo, key, iv)</code> and the generated IV/tag must be stored and reused on decrypt. The salt source for <code>deriveKey</code> still needs to be defined per user.
+    </div>
+    <h3>To make it real</h3>
+    <table>
+      <tr><th>#</th><th>Step</th></tr>
+      <tr><td>1</td><td>Add a per-user <code>salt</code> column (or derive deterministically) and persist the GCM <code>tag</code> alongside <code>iv</code>.</td></tr>
+      <tr><td>2</td><td>In <code>POST</code>: verify the master password, <code>deriveKey()</code>, <code>encryptData()</code>, store real ciphertext + iv + tag.</td></tr>
+      <tr><td>3</td><td>In <code>GET</code>/<code>[id]</code>: <code>decryptData()</code> the row instead of returning placeholders.</td></tr>
+      <tr><td>4</td><td>Switch <code>createCipher</code> → <code>createCipheriv</code> for both directions.</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    Fortress Key — Architecture Guide · generated from the codebase ·
+    see <code>README.md</code>, <code>VAULT_README.md</code>, and <code>CLAUDE.md</code> for more.
+  </footer>
+
+</div>
+</body>
+</html>
